@@ -6,7 +6,7 @@ import psycopg
 # i left user and pass blank for now bc we do not have users db 
 conn = psycopg.connect(
     dbname="itemsdb",
-    user="",     
+    user="postgres",     
     password="", 
     host="localhost",
     port="5432"
