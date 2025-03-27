@@ -1,32 +1,44 @@
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { Link, Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
-
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 
 export default function NotFoundScreen() {
   return (
-    <>
-      <Stack.Screen options={{ title: 'Oops!' }} />
-      <ThemedView style={styles.container}>
-        <ThemedText type="title">This screen doesn't exist.</ThemedText>
-        <Link href="/" style={styles.link}>
-          <ThemedText type="link">Go to home screen!</ThemedText>
+      <>
+    <ImageBackground 
+      source={require('/Users/amy/project-project-group-5/StickerSmash/assets/background_image.jpg')} 
+      style={design.background}
+    >
+      <Stack.Screen options={{ title: 'Not Found' }} />
+      <View style={design.styles}>
+        <Text style={design.text}>Page not found :/</Text>
+        <Link href="/" style={design.button}>
+          Go back to Home screen!
         </Link>
-      </ThemedView>
+       </View>
+     </ImageBackground>
     </>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const design = StyleSheet.create({
+  styles: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
+  background: {
+    flex: 1,
+    width: "100%", 
+    height: "100%", 
+  },
+  text: {
+    color: "black", 
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  button: {
+    fontSize: 20,
+    textDecorationLine: 'underline',
+    color: 'black',
   },
 });
