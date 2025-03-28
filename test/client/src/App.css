@@ -1,38 +1,102 @@
-.App {
+/* Background image */
+.background {
+  background-image: url('/Users/amy/project-project-group-5/test/client/background_image.jpg'); /* Add your image path here */
+  background-size: cover;
+  background-position: center;
+  height: 100vh; /* Make sure it fills the whole height */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0; /* Remove any padding */
+  box-sizing: border-box; /* Ensure padding doesn't affect layout */
+  position: relative; /* Make sure it is positioned relative to the screen */
+  overflow: hidden; /* Prevent overflow */
+}
+
+/* Container for the content */
+.container {
   text-align: center;
+  color: white;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  border-radius: 10px;
+  position: relative; /* Inside the background */
+  z-index: 2; /* Ensure it appears above background */
+  overflow-y: auto; /* Ensure scrolling if content is too long */
+  max-height: 90vh; /* Prevent overflow if too much content */
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Header styling */
+.header {
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  padding-top: 20px; /* Adds padding to the top so it's not cut off */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* Cart total display */
+.cart {
+  margin-bottom: 30px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Grid layout for items */
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  padding-bottom: 20px; /* Allow space for scrolling */
+}
+
+/* Item Box (each food item) */
+.itemBox {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  background-color: rgba(255, 255, 255, 0.8);  /* Semi-transparent background */
+  padding: 15px;
+  border-radius: 10px;
+  width: 200px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.itemBox:hover {
+  transform: scale(1.05);  /* Slight zoom effect on hover */
+}
+
+/* Placeholder for food image */
+.imagePlaceholder {
+  width: 150px;
+  height: 150px;
+  background-color: #ddd;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+/* Text styling for item name */
+.itemText {
+  font-size: 18px;
+  font-weight: bold;
+  color: black;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* Button for adding items to cart */
+.addToCartButton {
+  background-color: #4CAF50;
   color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.addToCartButton:hover {
+  background-color: #45a049;
 }
