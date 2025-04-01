@@ -6,7 +6,7 @@ const FeedList = ({color}) => {
     <ScrollView 
       contentContainerStyle={styles.container}>
       {
-        [1, 1, 1].map(opacity=> (
+        [1, 0.9, 0.8].map(opacity=> (
           <View 
             key={opacity} 
             style={[styles.color, {backgroundColor: color, opacity}]} 
