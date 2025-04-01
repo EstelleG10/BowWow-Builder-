@@ -22,7 +22,7 @@ const LoginScreen = () => {
   }
   
   return (
-    <ImageBackground source={require('../assets/images/background_image.jpg')//
+    <ImageBackground source={require('../assets/images/background_white.jpg')//
     } style={styles.container}>
       <Text style={styles.log}>Login here </Text>
       <Text style={{  lineHeight: 24, fontWeight: 'bold', color: 'black', fontFamily: 'SpaceMono-Regular', fontSize: 17, textAlign: 'center' }}> Welcome back you've </Text>

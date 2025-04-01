@@ -18,7 +18,7 @@ const ForgotPassScreen = () => {
   }
   
   return (
-    <ImageBackground source={require('../assets/images/background_image.jpg')//
+    <ImageBackground source={require('../assets/images/background_white.jpg')//
     } style={styles.container}>
       <Text style={styles.log}>Enter Email Address </Text>
       <TextInput style={styles.input} placeholder="email" value={email} onChangeText={setemail} />

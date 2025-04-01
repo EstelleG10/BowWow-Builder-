@@ -4,7 +4,7 @@ import FontAwesome from '@expo/vector-icons/Feather';
 
 const Layout = () => {
   return (
-    <Tabs>
+    <Tabs screenOptions={{headerShown: false}}>
       <Tabs.Screen name="index" options={{ 
         title: 'Home', 
         tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color={color} />
