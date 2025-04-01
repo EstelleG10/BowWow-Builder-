@@ -2,20 +2,22 @@ import React, { useState } from 'react';
 import { Linking, View, Text, TouchableOpacity, TextInput, Alert, StyleSheet, ImageBackground } from 'react-native';
 import { Link } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
+
 
 const LoginScreen = () => {
-  const navigation = useNavigation();
+  const router = useRouter();
   const [username, setname] = useState('');
   const [password, setpass] = useState('');
 
   const submit = async () => {
-
     if (username == '' || password == '') {
       Alert.alert('Error', 'Please enter the values');
     } else {
       Alert.alert('Success', 'Username and password are entered');
       console.log('Username', username);
       console.log('Password', password);
+      router.replace('/(tabs)');
     }
   }
   
@@ -30,7 +32,9 @@ const LoginScreen = () => {
       <Link href= '/forgotpass'>
       <Text style={styles.forgot}>Forgot your password?</Text>
       </Link>
+      <Link href="/logged-in/" withAnchor>
       <Text style={styles.button} onPress={submit}>Sign in</Text>
+      </Link>
       <Link href = '/signup'>
         <Text style={styles.signup}>Don't have an account? Register Now</Text>
       </Link>
