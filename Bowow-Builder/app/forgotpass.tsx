@@ -3,7 +3,7 @@ import { Linking, View, Text, TouchableOpacity, TextInput, Alert, StyleSheet, Im
 import { Link } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 
-const LoginScreen = () => {
+const ForgotPassScreen = () => {
   const navigation = useNavigation();
   const [email, setemail] = useState('');
 
@@ -46,4 +46,4 @@ const styles = StyleSheet.create({
   signup:{ marginTop: 20, lineHeight: 24, fontWeight: 'bold', color: 'grey', fontFamily: 'SF Pro', fontSize: 15, marginBottom: 40, textAlign: 'center' }
 });
 
-export default LoginScreen;
+export default ForgotPassScreen;
