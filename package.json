@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "@expo/metro-runtime": "~4.0.1",
+    "expo": "^52.0.41",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-native": "^0.78.1",
+    "react-native-web": "~0.19.13"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.12",
+    "typescript": "^5.3.3"
+  }
+}

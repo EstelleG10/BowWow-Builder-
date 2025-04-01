@@ -11,7 +11,6 @@ export default function Index() {
       }}
     >
       <Text>Go to login:</Text>
-      {/* Add content (like Text) inside the Link component */}
       <Link href="/login" style={styles.link}>
         Go to Login
       </Link>

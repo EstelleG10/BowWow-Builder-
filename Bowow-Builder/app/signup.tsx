@@ -20,7 +20,7 @@ const SignupScreen = () => {
   
 
   return (
-    <ImageBackground source={require('../assets/images/background_image.jpg')//
+    <ImageBackground source={require('../assets/images/background_image.jpg')
     } style={styles.container}>
       <Text style={styles.log}>Get Started </Text>
       <TextInput style={styles.input} placeholder="email" value={email} onChangeText={setemail} />

@@ -1,0 +1,37 @@
+# Node modules
+node_modules/
+
+# Expo and Metro bundler files
+.expo/
+.expo-shared/
+npm-debug.log
+yarn-error.log
+
+# React Native packager
+package-lock.json
+yarn.lock
+
+# Android build artifacts (only needed for bare workflow)
+android/
+
+# iOS build artifacts (only needed for bare workflow)
+ios/
+
+# Environment variables (you should not commit sensitive info)
+.env
+
+# Mac-specific files (if you're on macOS)
+.DS_Store
+
+# Log files
+*.log
+
+# Debugger config files
+.vscode/
+.idea/
+
+# Expo Go temporary files
+public/
+
+# Watchman files
+.watchmanconfig
