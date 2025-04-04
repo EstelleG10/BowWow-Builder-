@@ -1,6 +1,11 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Redirect, Stack, Tabs } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/Feather';
+import {Text} from 'react-native';
+
+export const unstable_settings = {
+  initialRouteName: '(root)',
+};
 
 const Layout = () => {
   return (
