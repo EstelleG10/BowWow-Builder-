@@ -7,7 +7,7 @@ import psycopg
 conn = psycopg.connect(
     dbname="itemsdb",
     user="estellegerber",     
-    password="megu$taDatab$$3s", 
+    password="------", 
     host="bowwow-db.cneo2g2w2qei.us-east-2.rds.amazonaws.com",
     port="5432"
 )
