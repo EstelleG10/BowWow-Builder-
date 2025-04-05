@@ -3,9 +3,13 @@ from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 import psycopg2
 import os
-from datetime import timedelta
+import jwt
+from datetime import timedelta, datetime
 
+# unsure how eactly jwt works but should create a secrret key to authenticate the api requests
 app = Flask(__name__)
+app.config['KEY'] = 'value'
+
 CORS(app)
 bcrypt = Bcrypt(app)
 
@@ -64,9 +68,8 @@ def login():
         conn.close()
 
         if exists_user and bcrypt.check_password_hash(exists_user[3], password):
-
+            token = jwt.encode({'user_id': exists_user[0], 'username': exists_user[1],'exp': datetime.utcnow() + timedelta(hours=3) 
+            }, app.config['key'], algorithm='HS256')
             return jsonify({"message": "login successful!"}), 200
     except Exception as error:
         return jsonify({"error": "Username does not exist. Please try and sign"}), 400
-
-
