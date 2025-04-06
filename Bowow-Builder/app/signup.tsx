@@ -23,9 +23,9 @@ const SignupScreen = () => {
     <ImageBackground source={require('../assets/images/background_white.jpg')
     } style={styles.container}>
       <Text style={styles.log}>Get Started </Text>
-      <TextInput style={styles.input} placeholder="email" value={email} onChangeText={setemail} />
-      <TextInput style={styles.input} placeholder="username" value={username} onChangeText={setname} />
-      <TextInput style={styles.input} placeholder="password" value={password} onChangeText={setpass} secureTextEntry />
+      <TextInput style={styles.input} placeholder="email" placeholderTextColor="orange" value={email} onChangeText={setemail} />
+      <TextInput style={styles.input} placeholder="username" placeholderTextColor="orange" value={username} onChangeText={setname} />
+      <TextInput style={styles.input} placeholder="password" placeholderTextColor="orange" value={password} onChangeText={setpass} secureTextEntry />
       <Text style={styles.button} onPress={submit}>Sign in</Text>
       <Link href='/login'>
         <Text style={styles.signup}>Already have an account? Sign in here</Text>
@@ -36,16 +36,70 @@ const SignupScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, backgroundColor: '#fff', padding: 20, marginBottom: 20,},
-  log: {marginTop: 60,justifyContent: 'center', textAlign: 'center', alignItems: 'center', fontSize: 30, fontWeight: 'bold', color: '#000080', fontFamily: 'SF Pro', marginBottom: 60
+    flex: 1,
+    padding: 20,
+    marginBottom: 20,
   },
-  input: {justifyContent: 'center', textAlign: 'left', alignItems: 'center', height: 46, fontSize: 13, marginBottom: 20, paddingLeft: 10, borderWidth: 1, borderRadius: 15, width: '100%', borderColor: '#BEDCF9', backgroundColor: '#BEDCF9', color: 'grey'
+
+  log: {
+    marginTop: 60,
+    textAlign: 'center',
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#000080',
+    marginBottom: 60
   },
-  button: {fontWeight: 'bold', justifyContent: 'center', textAlign: 'center', alignItems: 'center', color: 'white', fontSize: 18, padding: 10, marginTop: 20, borderWidth: 1, borderColor: '#FCA950', borderRadius: 15, width: '100%', height: 50, backgroundColor: '#FCA950'
+  input: {
+    justifyContent: 'center',
+    textAlign: 'left',
+    alignItems: 'center',
+    height: 46,
+    fontSize: 13,
+    color: 'red',
+    marginBottom: 20,
+    paddingLeft: 10,
+    borderRadius: 15,
+    width: '100%',
+    borderColor: 'orange',
+    borderWidth : 1,
+    backgroundColor: 'white',
   },
-  forgot: { lineHeight: 14, fontWeight: 'bold', textAlign: 'right', color: '#000080', fontFamily: 'SF Pro', fontSize: 14 }
+  button:
+  {
+    fontWeight: 'bold',
+    justifyContent: 'center',
+    textAlign: 'center',
+    alignItems: 'center',
+    color: 'grey',
+    fontSize: 18,
+    padding: 10,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#FCA950',
+    borderRadius: 15,
+    width: '100%',
+    height: 50,
+    backgroundColor: '#FCA950',
+  },
+  forgot: {
+    lineHeight: 14,
+    fontWeight: 'bold',
+    textAlign: 'right',
+    color: '#000080',
+    fontFamily: 'SF Pro',
+    fontSize: 14,
+  }
   , 
-  signup:{ marginTop: 30, lineHeight: 24, fontWeight: 'bold', color: 'grey', fontFamily: 'SF Pro', fontSize: 15, marginBottom: 0, textAlign: 'center' }
+  signup: {
+    marginTop: 30,
+    lineHeight: 24,
+    fontWeight: 'bold',
+    color: 'grey',
+    fontFamily: 'SF Pro',
+    fontSize: 15,
+    marginBottom: 0,
+    textAlign: 'center'
+  }
 });
 
 export default SignupScreen;

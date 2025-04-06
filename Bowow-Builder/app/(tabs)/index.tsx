@@ -34,9 +34,11 @@ const Home = () => {
             <View key={idx} style={styles.bundleBox}>
               <Text style={styles.bundleTitle}>{bundle.title}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {bundle.images.map((img, i) => (
-                  <Image key={i} source={img} style={styles.bundleImage} />
-                ))}
+            {bundle.images.map((img, i) => (
+              <View key={i} style={styles.imageWrapper}>
+                <Image source={img} style={styles.bundleImage} />
+              </View>
+            ))}
               </ScrollView>
             </View>
           ))}
@@ -83,13 +85,20 @@ const styles = StyleSheet.create({
     color: 'white',
     marginBottom: 10,
   },
+  imageWrapper: {
+  width: screenWidth * 0.6,
+  height: 180,
+  marginRight: 15,
+  borderRadius: 12,
+  backgroundColor: '#fff',
+  justifyContent: 'center',
+  alignItems: 'center',
+  overflow: 'hidden',
+  },
   bundleImage: {
-    width: screenWidth * 0.6,
-    height: 180,
-    marginRight: 15,
-    borderRadius: 10,
-    resizeMode: 'contain', // 👈 this makes images scale to fit
-    // backgroundColor: 'white', // maybe we wanna do but idk 
+  width: '90%',
+  height: '90%',
+  resizeMode: 'contain',
   },
 });
 

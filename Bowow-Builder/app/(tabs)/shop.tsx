@@ -103,7 +103,9 @@ export default function Category() {
             {filteredItems.map((item, index) => (
               <TouchableOpacity key={index} style={styles.itemBox} onPress={() => addToCart(item)}>
                 <View style={styles.imagePlaceholder} />
-                <Text style={styles.itemText}>{item.name}</Text>
+                <Text style={styles.itemText} numberOfLines={2}>
+                  {item.name}
+                </Text>
                 <Text style={styles.itemText}>${item.price}</Text>
               </TouchableOpacity>
             ))}
@@ -199,6 +201,7 @@ const styles = StyleSheet.create({
   itemBox: {
     alignItems: 'center',
     margin: 10,
+    width: 150,
   },
   imagePlaceholder: {
     width: 155,
@@ -212,5 +215,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'black',
     textAlign: 'center',
+    width: '100%',
   },
 });
