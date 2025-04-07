@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, ScrollView,
-  ImageBackground, TextInput
+  ImageBackground, TextInput, Image
 } from 'react-native';
 import { useCart } from '../cartcontext';
 
@@ -10,6 +10,7 @@ type Item = {
   name: string;
   price: number;
   category?: string;
+  img_route?: string;
 };
 
 export default function Category() {
@@ -40,7 +41,6 @@ export default function Category() {
   useEffect(() => {
     filterItems();
   }, [searchTerm, targetPrice, priceRange, selectedCategory, foodItems]);
-
   const filterItems = () => {
     const price = parseFloat(targetPrice);
     const range = parseFloat(priceRange);
@@ -59,7 +59,10 @@ export default function Category() {
     };
 
     const results = foodItems.filter(
-      item => matchesSearch(item) && matchesPrice(item) && matchesCategory(item)
+      item =>
+        matchesSearch(item) &&
+        matchesPrice(item) &&
+        matchesCategory(item)
     );
 
     setFilteredItems(results);
@@ -132,7 +135,15 @@ export default function Category() {
           <View style={styles.grid}>
             {filteredItems.map((item, index) => (
               <TouchableOpacity key={index} style={styles.itemBox} onPress={() => addToCart(item)}>
-                <View style={styles.imagePlaceholder} />
+                {item.img_route && item.img_route.trim() ? (
+                  <Image
+                    source={{ uri: `http://10.74.29.161:9000/${encodeURI(item.img_route.trim())}` }}
+                    style={styles.itemImage}
+                    onError={() => console.warn(`Could not load image for ${item.name}`)}
+                  />
+                ) : (
+                  <View style={styles.imagePlaceholder} />
+                )}
                 <Text style={styles.itemText} numberOfLines={2}>
                   {item.name}
                 </Text>
@@ -264,5 +275,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'black',
     textAlign: 'center',
+  },
+  itemImage: {
+    width: 155,
+    height: 155,
+    borderRadius: 10,
+    marginBottom: 5,
+    resizeMode: 'cover',
   },
 });
