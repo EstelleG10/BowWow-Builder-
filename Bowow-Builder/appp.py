@@ -1,13 +1,20 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from flask_bcrypt import Bcrypt
 import psycopg2
-
+import os
+import jwt
+from datetime import timedelta, datetime, timezone
 print("I am in the right file ")
 app = Flask(__name__)
+app.config['key'] = 'value'
+CORS(app)
+bcrypt = Bcrypt(app)
 
 # db connect info need to change to local host 
 DB_NAME = "itemsdb"
-DB_USER = "estellegerber"
-DB_PASSWORD = "mysecretpassword"
+DB_USER = "postgres"
+DB_PASSWORD = "1235"
 DB_HOST = "localhost"
 DB_PORT = "5432"
 
@@ -50,6 +57,7 @@ def get_items():
     
 @app.route("/api/meals", methods=["GET"])
 def get_meals():
+    print("here in get meals")
     conn = get_db_connection()
     cur = conn.cursor()
 
@@ -148,13 +156,17 @@ def get_comments(meal_id):
 
 @app.route("/api/meals", methods=["POST"])
 def create_meal():
-    data = request.get_json()
+    print("here in POST meals")
+    print(token)
 
-    user_id = data.get("user_id")
+    data = request.get_json()
+    decoded_data = jwt.decode(token, app.config['key'], algorithms=["HS256"])
+
+    user_id = decoded_data.get("user_id")
     meal_name = data.get("name")
     item_ids = data.get("items", [])
 
-    if not user_id or not meal_name or not item_ids:
+    if not meal_name or not item_ids:
         return jsonify({"error": "Missing required fields"}), 400
 
     conn = get_db_connection()
@@ -190,6 +202,65 @@ def create_meal():
     finally:
         cur.close()
         conn.close()
+
+@app.route('/login', methods=['POST'])
+def login():
+    global token
+    print("log in ")
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Failed to connect to the database"}), 500
+    curr = conn.cursor()
+    try:
+        curr.execute("SELECT * FROM users WHERE username = %s;", (username,))
+        exists_user = curr.fetchone()        
+        if exists_user and bcrypt.check_password_hash(exists_user[3], password):
+            token = jwt.encode({
+                'user_id': exists_user[0],
+                'username': exists_user[1],
+                'exp': datetime.now(timezone.utc)  + timedelta(hours=3) 
+            }, app.config['key'], algorithm='HS256')
+            return jsonify({"message": "Login successful!", "token": token}), 200
+        else:
+            return jsonify({"error": "Invalid username or password"}), 401
+    except Exception as error:
+        print(error)
+        return jsonify({"error": "An error occurred during login"}), 500
+    finally:
+        curr.close()
+        conn.close()
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    print("sign up")
+    data = request.get_json()
+    if not request.is_json:
+        return jsonify({"error": "Content type must be JSON"}), 400
+    email = data.get('email')
+    username = data.get('username')
+    password = data.get('password')
+    pass_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Failed to connect to the database"}), 500
+    curr = conn.cursor()
+    try:
+        curr.execute("SELECT * FROM users WHERE username = %s OR email = %s;", (username, email))
+        exists_user = curr.fetchone()
+        if exists_user:
+            return jsonify({"error": "Username or Email already exists. Please try and log in."}), 400
+        curr.execute("INSERT INTO users (email, username, password_hash) VALUES (%s, %s, %s);", (email, username, pass_hash))
+        conn.commit()
+        return jsonify({"message": "User registered successfully!"}), 201
+    except Exception as e:
+        print("Error:", e) 
+        return jsonify({"error": "Database error occurred"}), 500
+
+    finally:
+        curr.close()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=9000)

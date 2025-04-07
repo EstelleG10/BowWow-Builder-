@@ -21,7 +21,7 @@ export default function Category() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const { cart, addToCart } = useCart();
-  const API_URL = 'http://10.74.29.161:9000/items';
+  const API_URL = 'http://10.74.174.145:9000/items';
 
   useEffect(() => {
     const fetchItems = async () => {

@@ -26,13 +26,12 @@ export default function CartScreen() {
     }
 
     const mealData = {
-      user_id: 1, // replace with actual user if you have auth
       name: mealName,
       items: cart.map(item => item.id),
     };
 
     try {
-      const response = await fetch('http://10.66.76.62:9000/api/meals', {
+      const response = await fetch('http://10.74.174.145:9000/api/meals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(mealData),

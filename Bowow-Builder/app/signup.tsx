@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Linking, View, Text, TouchableOpacity, TextInput, Alert, StyleSheet, ImageBackground } from 'react-native';
 import { Link } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-const API_URL = 'http://3.144.100.86:8000/signup';
+const API_URL = 'http://10.74.174.145:9000/signup';
 const SignupScreen = () => {
     const [email, setemail] = useState('');
   const [username, setname] = useState('');

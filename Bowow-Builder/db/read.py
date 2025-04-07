@@ -1,15 +1,15 @@
 import csv
 import psycopg  # psycopg v3
-
-# Connect to local PostgreSQL
+ 
+ # Connect to local PostgreSQL
 conn = psycopg.connect(
+    
     dbname="itemsdb",
-    user="estellegerber",  # Replace with your macOS username if needed
+    user="postgres",  # Replace with your macOS username if needed
     host="localhost",
-    port="5432"
-    # password="yourpassword"  # Only include if you've set a password
-)
-
+    port="5432",
+    password="1235"  # Only include if you've set a password
+    )
 cur = conn.cursor()
 
 # Create tables (must be done before trying to DELETE from them)
@@ -24,20 +24,14 @@ cur.execute("""
         img_route TEXT
     );
 """)
+
 # cat tb
 cur.execute("""
-    CREATE TABLE IF NOT EXISTS categories (
-        id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL
-    );
+    CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL );
 """)
 # item cat 
 cur.execute("""
-    CREATE TABLE IF NOT EXISTS item_categories (
-        item_id INTEGER REFERENCES items(id) ON DELETE CASCADE,
-        category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE,
-        PRIMARY KEY (item_id, category_id)
-    );
+    CREATE TABLE IF NOT EXISTS item_categories (item_id INTEGER REFERENCES items(id) ON DELETE CASCADE,category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE,PRIMARY KEY (item_id, category_id));
 """)
 # userrs 
 cur.execute("""
@@ -47,22 +41,27 @@ cur.execute("""
         email TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL
     );
+
 """)
+
+
+cur.execute("""
+CREATE TABLE IF NOT EXISTS item_categories (
+    item_id INT NOT NULL,
+    category_id INT NOT NULL,
+    PRIMARY KEY (item_id, category_id),
+    FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+);
+            """)
+
 # meals 
 cur.execute("""
-    CREATE TABLE IF NOT EXISTS meals (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        total_price NUMERIC NOT NULL CHECK (total_price <= 12),
-        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
+    CREATE TABLE IF NOT EXISTS meals (id SERIAL PRIMARY KEY,name TEXT NOT NULL,total_price NUMERIC NOT NULL CHECK (total_price <= 12),user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
     );
 """)
 cur.execute("""
-    CREATE TABLE IF NOT EXISTS meal_items (
-        meal_id INTEGER REFERENCES meals(id) ON DELETE CASCADE,
-        item_id INTEGER REFERENCES items(id) ON DELETE CASCADE,
-        PRIMARY KEY (meal_id, item_id)
-    );
+    CREATE TABLE IF NOT EXISTS meal_items (meal_id INTEGER REFERENCES meals(id) ON DELETE CASCADE,item_id INTEGER REFERENCES items(id) ON DELETE CASCADE, PRIMARY KEY (meal_id, item_id));
 """)
 
 # make ratings table
@@ -157,11 +156,11 @@ with open("catitems1.csv", newline='', encoding='utf-8') as file:
                 (item_id, category_id)
             )
             print(f"WORKED: item_id {item_id} linked to category_id {category_id}")
-            
-            
+
+
 
 conn.commit()
 cur.close()
 conn.close()
 
-print("Data inserted into local PostgreSQL database.")
+print("Data inserted into local PostgreSQL database.");

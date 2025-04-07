@@ -37,7 +37,7 @@ const Home = () => {
   useEffect(() => {
     const fetchBundles = async () => {
       try {
-        const response = await fetch('http://10.74.29.161:9000/api/meals');
+        const response = await fetch('http://10.74.174.145:9000/api/meals');
         const data = await response.json();
         setBundles(data);
       } catch (err) {
