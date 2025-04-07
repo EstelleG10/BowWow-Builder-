@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Linking, View, Text, TouchableOpacity, TextInput, Alert, StyleSheet, ImageBackground } from 'react-native';
 import { Link } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-const API_URL = 'http://172.27.58.215:9000/signup';
+const API_URL = 'http://10.74.29.161:9000/signup';
 const SignupScreen = () => {
   const [email, setemail] = useState('');
   const [username, setname] = useState('');
@@ -14,30 +14,32 @@ const SignupScreen = () => {
       Alert.alert('Error', 'Please enter the values');
     } else {
       try {
-        const response = await fetch(API_URL, {  method: 'POST',
-          headers: { 'Content-Type': 'application/json',},
-          body: JSON.stringify({email: email, username: username,password: password,}),});
-          console.log("signup ")
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', },
+          body: JSON.stringify({ email: email, username: username, password: password, }),
+        });
+        console.log("signup ")
         const data = await response.text();
 
-        console.log('Response:', data); 
+        console.log('Response:', data);
         if (response.status === 201) {
           Alert.alert('Success', 'User registered successfully!');
           await AsyncStorage.setItem('user', JSON.stringify(data));
           console.log('User Info:', { email, username, password });
-      Alert.alert('Success', 'Username and password are entered');
-      console.log('Username', username);
-      console.log('Password', password);
-      console.log('Email: ', email);
+          Alert.alert('Success', 'Username and password are entered');
+          console.log('Username', username);
+          console.log('Password', password);
+          console.log('Email: ', email);
+        }
+      }
+      catch (error) {
+        console.error("Request error:", error); // Log the error from the catch block
+        Alert.alert("Error", "An error occurred. Please try again.");
       }
     }
-    catch (error){
-      console.error("Request error:", error); // Log the error from the catch block
-      Alert.alert("Error", "An error occurred. Please try again.");
   }
-    }
-  }
- 
+
 
 
   return (
@@ -71,7 +73,7 @@ const styles = StyleSheet.create({
   },
   forgot: { lineHeight: 14, fontWeight: 'bold', textAlign: 'right', color: '#000080', fontFamily: 'SF Pro', fontSize: 14 }
   ,
-  signup:{ marginTop: 30, lineHeight: 24, fontWeight: 'bold', color: 'grey', fontFamily: 'SF Pro', fontSize: 15, marginBottom: 0, textAlign: 'center' }
+  signup: { marginTop: 30, lineHeight: 24, fontWeight: 'bold', color: 'grey', fontFamily: 'SF Pro', fontSize: 15, marginBottom: 0, textAlign: 'center' }
 });
 
 

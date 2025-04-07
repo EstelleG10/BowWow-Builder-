@@ -7,7 +7,9 @@ import {
   StatusBar,
   ImageBackground,
   Image,
+  TextInput,
   Dimensions,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -29,14 +31,38 @@ const hardcodedBundles = [
   },
 ];
 
+const submitRating = async (mealId: number, rating: string) => {
+  const userId = 1; // NEED TO CHANGE LATER 
+  try {
+    const res = await fetch("http://10.74.29.161:9000/api/ratings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        meal_id: mealId,
+        rating: parseInt(rating),
+      }),
+    });
+
+    const data = await res.json();
+    console.log("Rating response:", data);
+    alert("Thanks for rating!");
+  } catch (error) {
+    console.error("Error submitting rating:", error);
+  }
+};
+
 const Home = () => {
   const [bundles, setBundles] = useState<any[]>([]);
   const [error, setError] = useState(false);
+  const [ratings, setRatings] = useState<{ [mealId: number]: string }>({});
 
   useEffect(() => {
     const fetchBundles = async () => {
       try {
-        const response = await fetch('http://172.27.58.215:9000/api/meals');
+        const response = await fetch('http://10.74.29.161:9000/api/meals');
         const data = await response.json();
         setBundles(data);
       } catch (err) {
@@ -65,6 +91,39 @@ const Home = () => {
           {displayBundles.map((bundle, idx) => (
             <View key={idx} style={styles.bundleBox}>
               <Text style={styles.bundleTitle}>{bundle.title || bundle.name}</Text>
+
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                <TextInput
+                  style={styles.ratingInput}
+                  placeholder="Rate 1–5"
+                  placeholderTextColor="#888"
+                  keyboardType="numeric"
+                  maxLength={1}
+                  value={ratings[bundle.id] || ''}
+                  onChangeText={(text) => {
+                    if (!text || /^[1-5]$/.test(text)) {
+                      setRatings((prev) => ({
+                        ...prev,
+                        [bundle.id]: text,
+                      }));
+                    }
+                  }}
+                />
+                <Pressable
+                  style={styles.submitButton}
+                  onPress={() => {
+                    const rating = ratings[bundle.id];
+                    if (rating && /^[1-5]$/.test(rating)) {
+                      submitRating(bundle.id, rating);
+                    } else {
+                      alert('Please enter a number from 1 to 5');
+                    }
+                  }}
+                >
+                  <Text style={styles.submitText}>Submit</Text>
+                </Pressable>
+              </View>
+
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {bundle.items
                   ? bundle.items.map((item: any, i: number) => {
@@ -73,8 +132,9 @@ const Home = () => {
                       <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
                         {trimmedRoute ? (
                           <Image
-                            source={{ uri: `http://172.27.58.215:9000/${trimmedRoute}` }}
+                            source={{ uri: `http://10.74.29.161:9000/${trimmedRoute}` }}
                             style={styles.bundleImage}
+                            resizeMode="contain"
                             onError={() =>
                               console.warn(`Could not load image for ${item.name}`)
                             }
@@ -138,12 +198,30 @@ const styles = StyleSheet.create({
     color: 'white',
     marginBottom: 10,
   },
+  ratingInput: {
+    backgroundColor: '#fff',
+    color: '#000',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    width: 80,
+  },
+  submitButton: {
+    marginLeft: 10,
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  submitText: {
+    fontWeight: 'bold',
+    color: '#000',
+  },
   bundleImage: {
     width: screenWidth * 0.6,
     height: 180,
     marginRight: 15,
     borderRadius: 10,
-    resizeMode: 'cover',
     backgroundColor: '#ccc',
   },
   itemText: {

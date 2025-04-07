@@ -1,13 +1,10 @@
 from flask import Flask, request, jsonify, send_from_directory
 import psycopg2
-import os  
-import jwt
-from datetime import timedelta, datetime, timezone
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 import psycopg2
-import os
 import jwt
+import os
 from datetime import timedelta, datetime, timezone
 print("I am in the right file ")
 app = Flask(__name__)
@@ -17,8 +14,8 @@ bcrypt = Bcrypt(app)
 
 # Database config
 DB_NAME = "itemsdb"
-DB_USER = "postgres"
-DB_PASSWORD = "1235"
+DB_USER = "estellegerber"
+DB_PASSWORD = ""
 DB_HOST = "localhost"
 DB_PORT = "5432"
 
@@ -32,7 +29,7 @@ def get_db_connection():
         port=DB_PORT
     )
 
-# Serve static images from /assets
+# Serve images from /assets
 @app.route('/assets/<path:filename>')
 def serve_image(filename):
     root_dir = os.path.join(os.path.dirname(__file__), 'assets')
@@ -229,7 +226,7 @@ def login():
     try:
         curr.execute("SELECT * FROM users WHERE username = %s;", (username,))
         exists_user = curr.fetchone()        
-        if exists_user and bcrypt.check_password_hash(exists_user[3], password):
+        if exists_user and bcrypt.check_password_hash(exists_user[2], password):
             token = jwt.encode({
                 'user_id': exists_user[0],
                 'username': exists_user[1],

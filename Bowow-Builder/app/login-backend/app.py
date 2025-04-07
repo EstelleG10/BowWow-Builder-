@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
+from werkzeug.security import check_password_hash
 import psycopg2
 import os
 import jwt
@@ -17,8 +18,8 @@ def get_db_connection():
     try:
         conn = psycopg2.connect(
             dbname="itemsdb",
-            user="postgres",     
-            password="1235",
+            user="estellegerber",     
+            password="",
             host="localhost",
             port="5432"
         )
@@ -53,23 +54,35 @@ def signup():
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+
     conn = get_db_connection()
-    if not conn: 
-        return jsonify({"failed to connect"}), 500
+    if not conn:
+        return jsonify({"error": "Failed to connect to database"}), 500
+
     curr = conn.cursor()
     try:
-        curr.execute("SELECT * FROM users WHERE username = %s;", (username))
+        curr.execute("SELECT * FROM users WHERE username = %s;", (username,))
         exists_user = curr.fetchone()
         curr.close()
         conn.close()
 
-        if exists_user and bcrypt.check_password_hash(exists_user[3], password):
-            token = jwt.encode({'user_id': exists_user[0], 'username': exists_user[1],'exp': datetime.utcnow() + timedelta(hours=3) 
-            }, app.config['key'], algorithm='HS256')
-            return jsonify({"message": "login successful!"}), 200
+        if exists_user:
+            stored_password_hash = exists_user[2]  # assuming password_hash is column 3 (index 2)
+            if check_password_hash(stored_password_hash, password):
+                token = jwt.encode({
+                    'user_id': exists_user[0],
+                    'username': exists_user[1],
+                    'exp': datetime.utcnow() + timedelta(hours=3)
+                }, app.config['key'], algorithm='HS256')
+                
+                return jsonify({"message": "login successful!", "token": token}), 200
+            else:
+                return jsonify({"error": "Incorrect password"}), 401
+        else:
+            return jsonify({"error": "User not found"}), 404
     except Exception as error:
-        return jsonify({"error": "Username does not exist. Please try and sign"}), 400
+        print("Login error:", error)
+        return jsonify({"error": "Something went wrong"}), 500

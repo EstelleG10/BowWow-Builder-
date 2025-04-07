@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://172.27.58.215:9000/login';
+const API_URL = 'http://10.74.29.161:9000/login';
 const LoginScreen = () => {
   const router = useRouter();
   const [username, setname] = useState('');
@@ -15,8 +15,9 @@ const LoginScreen = () => {
     if (username == '' || password == '') {
       Alert.alert('Error', 'Please enter the values');
     } else {
-      try{
-        const response = await fetch(API_URL, { method: 'POST',
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -27,22 +28,22 @@ const LoginScreen = () => {
         });
         const data = await response.json();
         if (response.status === 200 && data.token) {
-          const {token} = data;
+          const { token } = data;
           await AsyncStorage.setItem('jwt_token', token);
           Alert.alert('Success', 'Username and password are entered');
           console.log('Username', username);
           console.log('Password', password);
           router.replace('/(tabs)');
+        }
+        else {
+          Alert.alert("login failed", "invalid user or password")
+        }
       }
-      else{
-        Alert.alert("login failed", "invalid user or password")
+      catch (error) {
+        Alert.alert("error", "error occured. Please try again.")
       }
     }
-    catch (error){
-      Alert.alert("error", "error occured. Please try again.")
-  }
-}
-    
+
   }
 
   return (
