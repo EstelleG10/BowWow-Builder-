@@ -20,7 +20,7 @@ cur.execute("""
     CREATE TABLE IF NOT EXISTS items (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
-        price NUMERIC NOT NULL
+        price NUMERIC NOT NULL,
         img_route TEXT
     );
 """)
@@ -29,7 +29,7 @@ cur.execute("""
 cur.execute("""
     CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL );
 """)
-# item cat 
+# item categoryies (types)
 cur.execute("""
     CREATE TABLE IF NOT EXISTS item_categories (item_id INTEGER REFERENCES items(id) ON DELETE CASCADE,category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE,PRIMARY KEY (item_id, category_id));
 """)
@@ -60,6 +60,7 @@ cur.execute("""
     CREATE TABLE IF NOT EXISTS meals (id SERIAL PRIMARY KEY,name TEXT NOT NULL,total_price NUMERIC NOT NULL CHECK (total_price <= 12),user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
     );
 """)
+# individual items in a meal
 cur.execute("""
     CREATE TABLE IF NOT EXISTS meal_items (meal_id INTEGER REFERENCES meals(id) ON DELETE CASCADE,item_id INTEGER REFERENCES items(id) ON DELETE CASCADE, PRIMARY KEY (meal_id, item_id));
 """)
@@ -114,17 +115,32 @@ with open("cat.csv", newline='', encoding='utf-8') as file:
 
 print("Inserting items")
 item_id_tracker = {}
+
 with open("items.csv", newline='', encoding='utf-8') as file:
     reader = csv.DictReader(file)
     for i, row in enumerate(reader, start=1):
         name = row["Item"].strip()
-        price = row["Price"]
+        price_raw = row["Price"].strip()
+        img_route = row["img_route"].strip() or None
+
+        if not price_raw:
+            print(f"SKIPPED: Missing price for item '{name}'")
+            continue
+
+        try:
+            price = float(price_raw)
+        except ValueError:
+            print(f"SKIPPED: Invalid price '{price_raw}' for item '{name}'")
+            continue
+
         cur.execute(
-            "INSERT INTO items (name, price) VALUES (%s, %s) RETURNING id;",
-            (name, price)
+            # add image price name of tiem
+            "INSERT INTO items (name, price, img_route) VALUES (%s, %s, %s) RETURNING id;",
+            (name, price, img_route)
         )
         real_id = cur.fetchone()[0]
         item_id_tracker[i] = real_id
+
 
 # get valid category IDs
 valid_category_ids = set()
@@ -155,12 +171,12 @@ with open("catitems1.csv", newline='', encoding='utf-8') as file:
                 "INSERT INTO item_categories (item_id, category_id) VALUES (%s, %s) ON CONFLICT DO NOTHING;",
                 (item_id, category_id)
             )
+            # debugging to make sure we link item to cat
             print(f"WORKED: item_id {item_id} linked to category_id {category_id}")
-
-
+            
 
 conn.commit()
 cur.close()
 conn.close()
 
-print("Data inserted into local PostgreSQL database.");
+print("Data inserted into local DB.")

@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 
-// fallback hardcoded bundles
 const hardcodedBundles = [
   {
     title: 'Hungry Man Special',
@@ -49,6 +48,8 @@ const Home = () => {
     fetchBundles();
   }, []);
 
+  const displayBundles = error || bundles.length === 0 ? hardcodedBundles : bundles;
+
   return (
     <ImageBackground
       source={require('../../assets/images/background_blue.png')}
@@ -61,18 +62,33 @@ const Home = () => {
             <Text style={styles.textHeader}>The Wows of the Week</Text>
           </View>
 
-          {/* Show either dynamic or fallback bundles */}
-          {(error || bundles.length === 0 ? hardcodedBundles : bundles).map((bundle, idx) => (
+          {displayBundles.map((bundle, idx) => (
             <View key={idx} style={styles.bundleBox}>
               <Text style={styles.bundleTitle}>{bundle.title || bundle.name}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {bundle.items
-                  ? bundle.items.map((item: any, i: number) => (
-                    <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
-                      <View style={styles.bundleImage} />
-                      <Text style={styles.itemText}>{item.name}</Text>
-                    </View>
-                  ))
+                  ? bundle.items.map((item: any, i: number) => {
+                    const trimmedRoute = item.img_route?.trim();
+                    return (
+                      <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
+                        {trimmedRoute ? (
+                          <Image
+                            source={{ uri: `http://10.74.29.161:9000/${trimmedRoute}` }}
+                            style={styles.bundleImage}
+                            onError={() =>
+                              console.warn(`Could not load image for ${item.name}`)
+                            }
+                          />
+                        ) : (
+                          <View
+                            key={`fallback-${i}`}
+                            style={[styles.bundleImage, { backgroundColor: '#999' }]}
+                          />
+                        )}
+                        <Text style={styles.itemText}>{item.name}</Text>
+                      </View>
+                    );
+                  })
                   : bundle.images.map((img: any, i: number) => (
                     <Image key={i} source={img} style={styles.bundleImage} />
                   ))}
@@ -127,7 +143,7 @@ const styles = StyleSheet.create({
     height: 180,
     marginRight: 15,
     borderRadius: 10,
-    resizeMode: 'contain',
+    resizeMode: 'cover',
     backgroundColor: '#ccc',
   },
   itemText: {

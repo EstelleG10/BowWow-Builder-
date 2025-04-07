@@ -4,7 +4,7 @@ import { Link } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const API_URL = 'http://10.74.174.145:9000/signup';
 const SignupScreen = () => {
-    const [email, setemail] = useState('');
+  const [email, setemail] = useState('');
   const [username, setname] = useState('');
   const [password, setpass] = useState('');
 
@@ -51,19 +51,23 @@ const SignupScreen = () => {
       <Link href='/login'>
         <Text style={styles.signup}>Already have an account? Sign in here</Text>
       </Link>
-      </ImageBackground>
+    </ImageBackground>
   );
 };
 
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, backgroundColor: '#fff', padding: 20, marginBottom: 20,},
-  log: {marginTop: 60,justifyContent: 'center', textAlign: 'center', alignItems: 'center', fontSize: 30, fontWeight: 'bold', color: '#000080', fontFamily: 'SF Pro', marginBottom: 60
+    flex: 1, backgroundColor: '#fff', padding: 20, marginBottom: 20,
   },
-  input: {justifyContent: 'center', textAlign: 'left', alignItems: 'center', height: 46, fontSize: 13, marginBottom: 20, paddingLeft: 10, borderWidth: 1, borderRadius: 15, width: '100%', borderColor: '#BEDCF9', backgroundColor: '#BEDCF9', color: 'grey'
+  log: {
+    marginTop: 60, justifyContent: 'center', textAlign: 'center', alignItems: 'center', fontSize: 30, fontWeight: 'bold', color: '#000080', fontFamily: 'SF Pro', marginBottom: 60
   },
-  button: {fontWeight: 'bold', justifyContent: 'center', textAlign: 'center', alignItems: 'center', color: 'white', fontSize: 18, padding: 10, marginTop: 20, borderWidth: 1, borderColor: '#FCA950', borderRadius: 15, width: '100%', height: 50, backgroundColor: '#FCA950'
+  input: {
+    justifyContent: 'center', textAlign: 'left', alignItems: 'center', height: 46, fontSize: 13, marginBottom: 20, paddingLeft: 10, borderWidth: 1, borderRadius: 15, width: '100%', borderColor: '#BEDCF9', backgroundColor: '#BEDCF9', color: 'grey'
+  },
+  button: {
+    fontWeight: 'bold', justifyContent: 'center', textAlign: 'center', alignItems: 'center', color: 'white', fontSize: 18, padding: 10, marginTop: 20, borderWidth: 1, borderColor: '#FCA950', borderRadius: 15, width: '100%', height: 50, backgroundColor: '#FCA950'
   },
   forgot: { lineHeight: 14, fontWeight: 'bold', textAlign: 'right', color: '#000080', fontFamily: 'SF Pro', fontSize: 14 }
   ,
