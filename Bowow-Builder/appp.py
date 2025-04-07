@@ -1,26 +1,21 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-from flask_bcrypt import Bcrypt
+from flask import Flask, request, jsonify
 import psycopg2
 import os
 import jwt
 from datetime import timedelta, datetime
 
 
+print("I am in the right file ")
 app = Flask(__name__)
-app.config['KEY'] = 'value'
-CORS(app)
-bcrypt = Bcrypt(app)
 
-
-# Database connection details
+# db connect info need to change to local host 
 DB_NAME = "itemsdb"
-DB_USER = "postgres"
+DB_USER = "estellegerber"
 DB_PASSWORD = "mysecretpassword"
-DB_HOST = "172.17.0.2"  # or use 'postgres-container' if app.py is in Docker
+DB_HOST = "localhost"
 DB_PORT = "5432"
 
-
+# get our db connected
 def get_db_connection():
     return psycopg2.connect(
         dbname=DB_NAME,
@@ -30,123 +25,175 @@ def get_db_connection():
         port=DB_PORT
     )
 
-
-@app.route('/login', methods=['POST'])
-def login():
-    print("log in ")
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Failed to connect to the database"}), 500
-    curr = conn.cursor()
-    try:
-        curr.execute("SELECT * FROM users WHERE username = %s;", (username,))
-        exists_user = curr.fetchone()        
-        if exists_user and bcrypt.check_password_hash(exists_user[3], password):
-            token = jwt.encode({
-                'user_id': exists_user[0],
-                'username': exists_user[1],
-                'exp': datetime.timezone.estnow() + timedelta(hours=3)
-            }, app.config['key'], algorithm='HS256')
-            return jsonify({"message": "Login successful!", "token": token}), 200
-        else:
-            return jsonify({"error": "Invalid username or password"}), 401
-    except Exception as error:
-        print(error)
-        return jsonify({"error": "An error occurred during login"}), 500
-    finally:
-        curr.close()
-        conn.close()
-
-
-
-
-@app.route("/signup", methods=["POST"])
-def signup():
-    print("sign up")
-    data = request.get_json()
-    if not request.is_json:
-        return jsonify({"error": "Content type must be JSON"}), 400
-    email = data.get('email')
-    username = data.get('username')
-    password = data.get('password')
-    pass_hash = bcrypt.generate_password_hash(password).decode('utf-8')
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Failed to connect to the database"}), 500
-    curr = conn.cursor()
-    try:
-        curr.execute("SELECT * FROM users WHERE username = %s OR email = %s;", (username, email))
-        exists_user = curr.fetchone()
-        if exists_user:
-            return jsonify({"error": "Username or Email already exists. Please try and log in."}), 400
-        curr.execute("INSERT INTO users (email, username, password_hash) VALUES (%s, %s, %s);", (email, username, pass_hash))
-        conn.commit()
-        return jsonify({"message": "User registered successfully!"}), 201
-    except Exception as e:
-        print("Error:", e) 
-        return jsonify({"error": "Database error occurred"}), 500
-
-    finally:
-        curr.close()
-        conn.close()
-
-
+# 
 @app.route("/items", methods=["GET"])
 def get_items():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, name, price FROM items;")
-    items = cur.fetchall()
+
+    cur.execute("""
+        SELECT i.id, i.name, i.price, c.name AS category
+        FROM items i
+        LEFT JOIN item_categories ic ON i.id = ic.item_id
+        LEFT JOIN categories c ON ic.category_id = c.id;
+    """)
+    rows = cur.fetchall()
     cur.close()
     conn.close()
 
+    return jsonify([
+        {
+            "id": row[0],
+            "name": row[1],
+            "price": float(row[2]),
+            "category": row[3]  # may be None if no category
+        }
+        for row in rows
+    ])
+
+    
+@app.route("/api/meals", methods=["GET"])
+def get_meals():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT m.id, m.name, i.name, i.price
+        FROM meals m
+        JOIN meal_items mi ON m.id = mi.meal_id
+        JOIN items i ON i.id = mi.item_id
+        ORDER BY m.id;
+    """)
+
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    # Reformat into meal bundles
+    meals = {}
+    for meal_id, meal_name, item_name, item_price in rows:
+        if meal_id not in meals:
+            meals[meal_id] = {
+                "id": meal_id,
+                "name": meal_name,
+                "items": []
+            }
+        meals[meal_id]["items"].append({
+            "name": item_name,
+            "price": float(item_price)
+        })
+
+    return jsonify(list(meals.values()))
+
+@app.route("/api/ratings", methods=["POST"])
+def post_rating():
+    data = request.get_json()
+    user_id = data["user_id"]
+    meal_id = data["meal_id"]
+    rating = data["rating"]
+
+    if rating < 1 or rating > 5:
+        return jsonify({"error": "Rating must be between 1 and 5"}), 400
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO ratings (user_id, meal_id, rating) VALUES (%s, %s, %s);",
+        (user_id, meal_id, rating)
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"message": "Rating saved!"}), 201
+
+@app.route("/api/comments", methods=["POST"])
+def post_comment():
+    data = request.get_json()
+    user_id = data["user_id"]
+    meal_id = data["meal_id"]
+    text = data["text"]
+
+    if not text.strip():
+        return jsonify({"error": "Comment cannot be empty"}), 400
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO comments (user_id, meal_id, text) VALUES (%s, %s, %s);",
+        (user_id, meal_id, text)
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"message": "Comment added!"}), 201
+
+@app.route("/api/meals/<int:meal_id>/comments", methods=["GET"])
+def get_comments(meal_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT users.username, c.text, c.created_at
+        FROM comments c
+        JOIN users ON c.user_id = users.id
+        WHERE c.meal_id = %s
+        ORDER BY c.created_at DESC;
+    """, (meal_id,))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
 
     return jsonify([
-        {"id": row[0], "name": row[1], "price": float(row[2])}
-        for row in items
+        {"user": row[0], "text": row[1], "created_at": row[2].isoformat()}
+        for row in rows
     ])
 
 
-def get_bundle():
-    # need to use jwt token authentication to get user id
-
+@app.route("/api/meals", methods=["POST"])
+def create_meal():
     data = request.get_json()
 
-    total_price = data.get('total_price')
-    name = data.get('name')
+    user_id = data.get("user_id")
+    meal_name = data.get("name")
+    item_ids = data.get("items", [])
 
-    if not total_price or not name:
-        return jsonify({"error": "Missing required fields: total_price or name"}), 400
+    if not user_id or not meal_name or not item_ids:
+        return jsonify({"error": "Missing required fields"}), 400
 
     conn = get_db_connection()
-    curr = conn.cursor()
+    cur = conn.cursor()
 
     try:
-        # for now, the user id is just 1: hardcoded in
-        # could not figure out the jwt token
-        curr.execute("INSERT INTO meals (name, user_id, total_price) VALUES (%s, %s, %s);", (name, 1, total_price))
-        bundle_id = curr.fetchone()[0]
+        # Calculate total price of the meal
+        cur.execute("SELECT SUM(price) FROM items WHERE id = ANY(%s);", (item_ids,))
+        total_price = cur.fetchone()[0] or 0
+
+        # Insert the new meal
+        cur.execute(
+            "INSERT INTO meals (name, user_id, total_price) VALUES (%s, %s, %s) RETURNING id;",
+            (meal_name, user_id, total_price)
+        )
+        meal_id = cur.fetchone()[0]
+
+        # Insert meal items
+        for item_id in item_ids:
+            cur.execute(
+                "INSERT INTO meal_items (meal_id, item_id) VALUES (%s, %s);",
+                (meal_id, item_id)
+            )
+
         conn.commit()
-        items = data.get('items', [])
-        for item in items:
-            item_id = item['item_id']
-            curr.execute("INSERT INTO meal_items (bundle_id, item_id) VALUES (%s, %s);", (bundle_id, item_id))
-        conn.commit()
-        return jsonify({"message": "Bundle created!"}), 201
+        return jsonify({"message": "Meal created", "meal_id": meal_id}), 201
 
     except Exception as e:
-        print("Error:", e) 
-        return jsonify({"error": "Database error occurred"}), 500
+        conn.rollback()
+        print("Error:", e)
+        return jsonify({"error": "Internal server error"}), 500
 
     finally:
-        curr.close()
+        cur.close()
         conn.close()
 
-
-
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+    app.run(host="0.0.0.0", port=9000)

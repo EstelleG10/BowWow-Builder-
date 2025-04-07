@@ -1,54 +1,19 @@
-import React, {useState} from 'react';
-import { Alert, ScrollView, View, Text, TouchableOpacity, StyleSheet, ImageBackground, TextInput } from 'react-native';
+import React, { useState } from 'react';
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ImageBackground,
+  TextInput,
+  Alert,
+} from 'react-native';
 import { useCart } from '../cartcontext';
 
 export default function CartScreen() {
   const { cart, removeFromCart } = useCart();
-  const [bundle_name, setbundle] = useState('');
-  
-  const makebundle = async () => {
-    const API_URL = 'http://3.144.100.86:8000/makebundle'
-    if (parseFloat(cart.reduce((total, item) => total + parseFloat(item.price as any), 0).toFixed(2)) <=0) {
-      Alert.alert("error", "Cart is empty")
-  }
-  else {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      Alert.alert("error", "No token found, please log in again");
-      return;
-    }
-
-    const bundleData = {
-      // user_id: "some id", //this WONT WORK
-      name: bundle_name,
-      total_price: parseFloat(cart.reduce((total, item) => total + parseFloat(item.price as any), 0).toFixed(2)),
-      items: cart.map(item => ({
-        item_id: item.id,
-        name: item.name,
-        price: item.price,
-
-      })),
-    };
-    try{
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` //token for authentication but unsure if this works or not
-      },
-      body: JSON.stringify(bundleData),
-    });
-    if (response.ok) {
-      Alert.alert("message", "Bundle has been saved. View in profile!");
-    } else {
-      Alert.alert("error", "An error occurred");
-    }
-  } catch (error) {
-    console.error('Error creating bundle:', error);
-    Alert.alert("error", "An error occurred while making the bundle");
-  }
-}
-};
+  const [mealName, setMealName] = useState('');
 
   const calculateTotal = () => {
 
@@ -58,26 +23,66 @@ export default function CartScreen() {
       // Alert.alert("error", "Total price is greater than 12. Please remove an item");
     } else {
     return cart.reduce((total, item) => total + parseFloat(item.price as any), 0).toFixed(2);
+  };
+
+  const handleSaveMeal = async () => {
+    if (!mealName.trim()) {
+      Alert.alert('Please enter a meal name!');
+      return;
+    }
+
+    const mealData = {
+      user_id: 1, // replace with actual user if you have auth
+      name: mealName,
+      items: cart.map(item => item.id),
+    };
+
+    try {
+      const response = await fetch('http://10.66.76.62:9000/api/meals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mealData),
+      });
+
+      if (response.ok) {
+        Alert.alert('Meal saved!');
+        setMealName('');
+      } else {
+        Alert.alert('Error saving meal.');
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Network error!');
     }
   };
 
   return (
     <ImageBackground source={require('../../assets/images/background_blue.png')} style={styles.background}>
-    <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.header}>Cart</Text>
         <Text style={styles.totalPrice}>Total Price: ${calculateTotal()}</Text>
-      {cart.map((item, index) => (
-        <View key={index} style={styles.itemBox}>
-          <Text style={styles.itemText}>{item.name} - ${item.price}</Text>
-          <TouchableOpacity onPress={() => removeFromCart(item.id)}>
-            <Text style={styles.removeButton}>Remove</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
-          <View  style={styles.itemBox}>
-            <TextInput style={styles.itemText} placeholder="Save your cart as bundle" value={bundle_name} onChangeText={setbundle} placeholderTextColor="#888" onEndEditing={() => makebundle()}/>
+
+        {cart.map((item, index) => (
+          <View key={index} style={styles.itemBox}>
+            <Text style={styles.itemText}>{item.name} - ${item.price}</Text>
+            <TouchableOpacity onPress={() => removeFromCart(item.id)}>
+              <Text style={styles.removeButton}>Remove</Text>
+            </TouchableOpacity>
           </View>
-          </ScrollView>
+        ))}
+
+        <TextInput
+          style={styles.input}
+          placeholder="Name your meal..."
+          placeholderTextColor="gray"
+          value={mealName}
+          onChangeText={setMealName}
+        />
+
+        <TouchableOpacity style={styles.saveButton} onPress={handleSaveMeal}>
+          <Text style={styles.saveButtonText}>Save and Post Meal!!</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </ImageBackground>
   );
 }
@@ -123,5 +128,26 @@ const styles = StyleSheet.create({
   removeButton: {
     color: 'red',
     marginTop: 5,
+  },
+  input: {
+    backgroundColor: 'white',
+    color: 'black',
+    width: '100%',
+    padding: 10,
+    marginTop: 10,
+    borderRadius: 10,
+  },
+  saveButton: {
+    backgroundColor: '#4CAF50',
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
