@@ -1,6 +1,11 @@
 from flask import Flask, request, jsonify, send_from_directory
 import psycopg2
-import os  # ✅ Needed for static file serving
+import os  
+import jwt
+from datetime import timedelta, datetime, timezone
+from flask_cors import CORS
+from flask_bcrypt import Bcrypt
+import psycopg2
 import os
 import jwt
 from datetime import timedelta, datetime, timezone
@@ -208,37 +213,6 @@ def create_meal():
     finally:
         cur.close()
         conn.close()
-@app.route('/login', methods=['POST'])
-def login():
-    global token
-    print("log in ")
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Failed to connect to the database"}), 500
-    curr = conn.cursor()
-    try:
-        curr.execute("SELECT * FROM users WHERE username = %s;", (username,))
-        exists_user = curr.fetchone()        
-        if exists_user and bcrypt.check_password_hash(exists_user[3], password):
-            token = jwt.encode({
-                'user_id': exists_user[0],
-                'username': exists_user[1],
-                'exp': datetime.now(timezone.utc)  + timedelta(hours=3) 
-            }, app.config['key'], algorithm='HS256')
-            return jsonify({"message": "Login successful!", "token": token}), 200
-        else:
-            return jsonify({"error": "Invalid username or password"}), 401
-    except Exception as error:
-        print(error)
-        return jsonify({"error": "An error occurred during login"}), 500
-    finally:
-        curr.close()
-        conn.close()
-
-# Start server
 
 @app.route('/login', methods=['POST'])
 def login():

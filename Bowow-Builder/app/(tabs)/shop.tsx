@@ -22,7 +22,7 @@ export default function Category() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const { cart, addToCart } = useCart();
-  const API_URL = 'http://10.74.174.145:9000/items';
+  const API_URL = 'http://172.27.58.215:9000/items';
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -137,7 +137,7 @@ export default function Category() {
               <TouchableOpacity key={index} style={styles.itemBox} onPress={() => addToCart(item)}>
                 {item.img_route && item.img_route.trim() ? (
                   <Image
-                    source={{ uri: `http://10.74.29.161:9000/${encodeURI(item.img_route.trim())}` }}
+                    source={{ uri: `http://172.27.58.215:9000/${encodeURI(item.img_route.trim())}` }}
                     style={styles.itemImage}
                     onError={() => console.warn(`Could not load image for ${item.name}`)}
                   />

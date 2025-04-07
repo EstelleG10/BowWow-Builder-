@@ -36,7 +36,7 @@ const Home = () => {
   useEffect(() => {
     const fetchBundles = async () => {
       try {
-        const response = await fetch('http://10.74.174.145:9000/api/meals');
+        const response = await fetch('http://172.27.58.215:9000/api/meals');
         const data = await response.json();
         setBundles(data);
       } catch (err) {
@@ -73,7 +73,7 @@ const Home = () => {
                       <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
                         {trimmedRoute ? (
                           <Image
-                            source={{ uri: `http://10.74.29.161:9000/${trimmedRoute}` }}
+                            source={{ uri: `http://172.27.58.215:9000/${trimmedRoute}` }}
                             style={styles.bundleImage}
                             onError={() =>
                               console.warn(`Could not load image for ${item.name}`)
