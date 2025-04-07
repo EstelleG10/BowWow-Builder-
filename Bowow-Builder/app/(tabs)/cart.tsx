@@ -16,12 +16,6 @@ export default function CartScreen() {
   const [mealName, setMealName] = useState('');
 
   const calculateTotal = () => {
-
-    if (parseFloat(cart.reduce((total, item) => total + parseFloat(item.price as any), 0).toFixed(2)) > 12) {
-      console.log("Total price is greater than 12");
-      return "error"
-      // Alert.alert("error", "Total price is greater than 12. Please remove an item");
-    } else {
     return cart.reduce((total, item) => total + parseFloat(item.price as any), 0).toFixed(2);
   };
 
@@ -124,7 +118,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-
   removeButton: {
     color: 'red',
     marginTop: 5,

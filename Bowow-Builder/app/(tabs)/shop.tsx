@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, ScrollView,
-  ImageBackground, TextInput, Alert
+  ImageBackground, TextInput
 } from 'react-native';
 import { useCart } from '../cartcontext';
 
@@ -66,16 +66,7 @@ export default function Category() {
   };
 
   const calculateTotal = () =>
-  {
-    if (parseFloat(cart.reduce((total, item) => total + parseFloat(item.price as any), 0).toFixed(2)) > 12) {
-          console.log("Total price is greater than 12");
-          Alert.alert("error", "Total price is greater than 12. Please remove an item");
-          
-        } else {
-        return cart.reduce((total, item) => total + parseFloat(item.price as any), 0).toFixed(2);
-        }
-  }
-
+    cart.reduce((total, item) => total + parseFloat(item.price as any), 0).toFixed(2);
 
   const allCategories = Array.from(
     new Set(foodItems.map(item => item.category).filter(Boolean))

@@ -1,9 +1,5 @@
 from flask import Flask, request, jsonify
 import psycopg2
-import os
-import jwt
-from datetime import timedelta, datetime
-
 
 print("I am in the right file ")
 app = Flask(__name__)
