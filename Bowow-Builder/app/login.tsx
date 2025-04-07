@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://10.74.29.161:9000/login';
+const API_URL = 'http://13.58.115.85:9000/login';
 const LoginScreen = () => {
   const router = useRouter();
   const [username, setname] = useState('');

@@ -31,7 +31,7 @@ export default function CartScreen() {
     };
 
     try {
-      const response = await fetch('http://10.74.29.161:9000/api/meals', {
+      const response = await fetch('http://13.58.115.85:9000/api/meals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(mealData),

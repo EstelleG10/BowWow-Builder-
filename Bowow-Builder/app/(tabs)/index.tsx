@@ -62,7 +62,7 @@ const Home = () => {
   useEffect(() => {
     const fetchBundles = async () => {
       try {
-        const response = await fetch('http://10.74.29.161:9000/api/meals');
+        const response = await fetch('http://13.58.115.85:9000/api/meals');
         const data = await response.json();
         setBundles(data);
       } catch (err) {
@@ -91,7 +91,11 @@ const Home = () => {
           {displayBundles.map((bundle, idx) => (
             <View key={idx} style={styles.bundleBox}>
               <Text style={styles.bundleTitle}>{bundle.title || bundle.name}</Text>
-
+              {bundle.avg_rating !== undefined && (
+                <Text style={styles.ratingDisplay}>
+                  Average Rating: {bundle.avg_rating} ⭐
+                </Text>
+              )}
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
                 <TextInput
                   style={styles.ratingInput}
@@ -132,7 +136,7 @@ const Home = () => {
                       <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
                         {trimmedRoute ? (
                           <Image
-                            source={{ uri: `http://10.74.29.161:9000/${trimmedRoute}` }}
+                            source={{ uri: `http://13.58.115.85:9000/${trimmedRoute}` }}
                             style={styles.bundleImage}
                             resizeMode="contain"
                             onError={() =>
@@ -230,6 +234,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 5,
     width: screenWidth * 0.6,
+  },
+  ratingDisplay: {
+    fontSize: 16,
+    color: '#FFD700',
+    fontWeight: '600',
+    marginBottom: 8,
   },
 });
 

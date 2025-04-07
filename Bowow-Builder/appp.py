@@ -62,7 +62,7 @@ def get_items():
         for row in rows
     ])
 
-# Get meals (includes img_route for each item)
+# Get meals (includes avg_rating and img_route for each item)
 @app.route("/api/meals", methods=["GET"])
 def get_meals():
     print("here in get meals")
@@ -77,8 +77,18 @@ def get_meals():
         ORDER BY m.id;
     """)
     rows = cur.fetchall()
+
+    # Get average ratings for each meal
+    cur.execute("""
+        SELECT meal_id, ROUND(AVG(rating), 1) as avg_rating
+        FROM ratings
+        GROUP BY meal_id;
+    """)
+    rating_rows = cur.fetchall()
     cur.close()
     conn.close()
+
+    ratings_dict = {row[0]: row[1] for row in rating_rows}
 
     meals = {}
     for meal_id, meal_name, item_name, item_price, item_img in rows:
@@ -86,6 +96,7 @@ def get_meals():
             meals[meal_id] = {
                 "id": meal_id,
                 "name": meal_name,
+                "avg_rating": ratings_dict.get(meal_id),
                 "items": []
             }
         meals[meal_id]["items"].append({
