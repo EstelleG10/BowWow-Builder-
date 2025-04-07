@@ -1,28 +1,59 @@
-import { StyleSheet, View, Text, ScrollView, StatusBar, ImageBackground, Image, Dimensions } from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  StatusBar,
+  ImageBackground,
+  Image,
+  Dimensions,
+} from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 
-const bundles = [
+// fallback hardcoded bundles
+const hardcodedBundles = [
   {
     title: 'Hungry Man Special',
     images: [
       require('../../assets/images/image1.jpg'),
       require('../../assets/images/image2-min.png'),
       require('../../assets/images/image3-min.png'),
-    ]
+    ],
   },
   {
     title: 'Snack Restock',
     images: [
       require('../../assets/images/lesserevil_fieryhot.jpg'),
       require('../../assets/images/orville_popcorn.jpg'),
-    ]
-  }
+    ],
+  },
 ];
 
 const Home = () => {
+  const [bundles, setBundles] = useState<any[]>([]);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const fetchBundles = async () => {
+      try {
+        const response = await fetch('http://10.74.29.161:9000/api/meals');
+        const data = await response.json();
+        setBundles(data);
+      } catch (err) {
+        console.error('Error fetching meals:', err);
+        setError(true);
+      }
+    };
+
+    fetchBundles();
+  }, []);
+
   return (
-    <ImageBackground source={require('../../assets/images/background_blue.png')} style={styles.background}>
+    <ImageBackground
+      source={require('../../assets/images/background_blue.png')}
+      style={styles.background}
+    >
       <SafeAreaProvider>
         <SafeAreaView style={styles.container} edges={['top']}>
           <View style={styles.textBox}>
@@ -30,13 +61,21 @@ const Home = () => {
             <Text style={styles.textHeader}>The Wows of the Week</Text>
           </View>
 
-          {bundles.map((bundle, idx) => (
+          {/* Show either dynamic or fallback bundles */}
+          {(error || bundles.length === 0 ? hardcodedBundles : bundles).map((bundle, idx) => (
             <View key={idx} style={styles.bundleBox}>
-              <Text style={styles.bundleTitle}>{bundle.title}</Text>
+              <Text style={styles.bundleTitle}>{bundle.title || bundle.name}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {bundle.images.map((img, i) => (
-                  <Image key={i} source={img} style={styles.bundleImage} />
-                ))}
+                {bundle.items
+                  ? bundle.items.map((item: any, i: number) => (
+                    <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
+                      <View style={styles.bundleImage} />
+                      <Text style={styles.itemText}>{item.name}</Text>
+                    </View>
+                  ))
+                  : bundle.images.map((img: any, i: number) => (
+                    <Image key={i} source={img} style={styles.bundleImage} />
+                  ))}
               </ScrollView>
             </View>
           ))}
@@ -88,8 +127,15 @@ const styles = StyleSheet.create({
     height: 180,
     marginRight: 15,
     borderRadius: 10,
-    resizeMode: 'contain', // 👈 this makes images scale to fit
-    // backgroundColor: 'white', // maybe we wanna do but idk 
+    resizeMode: 'contain',
+    backgroundColor: '#ccc',
+  },
+  itemText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 5,
+    width: screenWidth * 0.6,
   },
 });
 
