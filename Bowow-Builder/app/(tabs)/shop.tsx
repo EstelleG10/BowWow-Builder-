@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, ScrollView,
-  ImageBackground, TextInput
+  ImageBackground, TextInput, Image
 } from 'react-native';
 import { useCart } from '../cartcontext';
 
@@ -9,6 +9,8 @@ type Item = {
   id: number;
   name: string;
   price: number;
+  category?: string;
+  img_route?: string;
 };
 
 export default function Category() {
@@ -17,9 +19,10 @@ export default function Category() {
   const [searchTerm, setSearchTerm] = useState('');
   const [targetPrice, setTargetPrice] = useState('');
   const [priceRange, setPriceRange] = useState('');
-  const { cart, addToCart } = useCart();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const API_URL = 'http://3.144.100.86:8000/items';
+  const { cart, addToCart } = useCart();
+  const API_URL = 'http://10.74.29.161:9000/items';
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -35,11 +38,9 @@ export default function Category() {
     fetchItems();
   }, []);
 
-  // let users search for items ALSO let users search for a price so they can comlete order under 12
   useEffect(() => {
     filterItems();
-  }, [searchTerm, targetPrice, priceRange, foodItems]);
-
+  }, [searchTerm, targetPrice, priceRange, selectedCategory, foodItems]);
   const filterItems = () => {
     const price = parseFloat(targetPrice);
     const range = parseFloat(priceRange);
@@ -52,12 +53,27 @@ export default function Category() {
       return item.price >= price - range && item.price <= price + range;
     };
 
-    const results = foodItems.filter(item => matchesSearch(item) && matchesPrice(item));
+    const matchesCategory = (item: Item) => {
+      if (!selectedCategory) return true;
+      return item.category === selectedCategory;
+    };
+
+    const results = foodItems.filter(
+      item =>
+        matchesSearch(item) &&
+        matchesPrice(item) &&
+        matchesCategory(item)
+    );
+
     setFilteredItems(results);
   };
 
   const calculateTotal = () =>
     cart.reduce((total, item) => total + parseFloat(item.price as any), 0).toFixed(2);
+
+  const allCategories = Array.from(
+    new Set(foodItems.map(item => item.category).filter(Boolean))
+  );
 
   return (
     <ImageBackground source={require('../../assets/images/background_white.jpg')} style={styles.background}>
@@ -74,6 +90,23 @@ export default function Category() {
               onChangeText={text => setSearchTerm(text)}
             />
           </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+            {allCategories.map((cat, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.categoryButton,
+                  selectedCategory === cat && styles.categorySelected,
+                ]}
+                onPress={() =>
+                  setSelectedCategory(prev => (prev === cat ? null : cat))
+                }
+              >
+                <Text style={styles.categoryText}>{cat}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
           <View style={styles.priceFilterBox}>
             <TextInput
@@ -102,7 +135,15 @@ export default function Category() {
           <View style={styles.grid}>
             {filteredItems.map((item, index) => (
               <TouchableOpacity key={index} style={styles.itemBox} onPress={() => addToCart(item)}>
-                <View style={styles.imagePlaceholder} />
+                {item.img_route && item.img_route.trim() ? (
+                  <Image
+                    source={{ uri: `http://10.74.29.161:9000/${encodeURI(item.img_route.trim())}` }}
+                    style={styles.itemImage}
+                    onError={() => console.warn(`Could not load image for ${item.name}`)}
+                  />
+                ) : (
+                  <View style={styles.imagePlaceholder} />
+                )}
                 <Text style={styles.itemText} numberOfLines={2}>
                   {item.name}
                 </Text>
@@ -144,6 +185,25 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginBottom: 10,
+  },
+  categoryScroll: {
+    marginBottom: 10,
+    maxHeight: 40,
+  },
+  categoryButton: {
+    backgroundColor: '#ddd',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    marginHorizontal: 5,
+  },
+  categorySelected: {
+    backgroundColor: '#007aff',
+  },
+  categoryText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: 'black',
   },
   searchBar: {
     width: '95%',
@@ -215,6 +275,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'black',
     textAlign: 'center',
-    width: '100%',
+  },
+  itemImage: {
+    width: 155,
+    height: 155,
+    borderRadius: 10,
+    marginBottom: 5,
+    resizeMode: 'cover',
   },
 });
