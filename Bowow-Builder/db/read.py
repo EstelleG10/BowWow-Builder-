@@ -17,12 +17,7 @@ print("Creating tables")
 
 # items tb 
 cur.execute("""
-    CREATE TABLE IF NOT EXISTS items (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        price NUMERIC NOT NULL,
-        img_route TEXT
-    );
+    CREATE TABLE IF NOT EXISTS items (    id SERIAL PRIMARY KEY,    name TEXT NOT NULL,    price NUMERIC NOT NULL,    img_route TEXT);
 """)
 
 # cat tb
