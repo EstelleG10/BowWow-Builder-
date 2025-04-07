@@ -196,6 +196,7 @@ def create_meal():
     finally:
         cur.close()
         conn.close()
+        
 @app.route('/login', methods=['POST'])
 def login():
     global token
