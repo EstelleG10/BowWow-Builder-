@@ -15,9 +15,11 @@ const Profile = () => {
 }
 
 const styles = StyleSheet.create({
-        textBox: {padding: 20},
+	textBox: {padding: 20},
   container: {
     flex: 1,
     paddingTop: StatusBar.currentHeight,
   },
 });
+
+export default Profile;

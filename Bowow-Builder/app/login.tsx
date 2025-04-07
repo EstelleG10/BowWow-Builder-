@@ -3,7 +3,7 @@ import { Linking, View, Text, TouchableOpacity, TextInput, Alert, StyleSheet, Im
 import { Link } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-//import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const LoginScreen = () => {
   const router = useRouter();
@@ -13,41 +13,12 @@ const LoginScreen = () => {
   const submit = async () => {
     if (username == '' || password == '') {
       Alert.alert('Error', 'Please enter the values');
-  } else {
-//       try{
-//         ///THIS IS WRONG
-//         const response = await fetch('172-31-11-31/api/login', { //unsure what the post request would be here so i used the ec2 login and the api post reqest
-//           method: 'POST',
-//           headers: {
-//             'Content-Type': 'application/json',
-//           },
-//           body: JSON.stringify({
-//             username: username,
-//             password: password,
-//           }),
-//         });
-//         const data = await response.json();
-//         if (response.status === 200 && data.token) {
-//           const {token} = data;
-//           await AsyncStorage.setItem('jwt_token', token);
-//           Alert.alert('Success', 'Username and password are entered');
-//           console.log('Username', username);
-//           console.log('Password', password);
-//           router.replace('/(tabs)');
-//       }
-//       else{
-//         Alert.alert("login failed", "invalid user or password")
-//       }
-//     }
-//     catch (error){
-//       Alert.alert("error", "error occured. Please try again.")
-//   }
-// }
-          Alert.alert('Success', 'Username and password are entered');
-          console.log('Username', username);
-          console.log('Password', password);
-          router.replace('/(tabs)');
-  }
+    } else {
+      Alert.alert('Success', 'Username and password are entered');
+      console.log('Username', username);
+      console.log('Password', password);
+      router.replace('/(tabs)');
+    }
   }
   
   return (

@@ -88,6 +88,8 @@ const styles = StyleSheet.create({
     height: 180,
     marginRight: 15,
     borderRadius: 10,
+    resizeMode: 'contain', // 👈 this makes images scale to fit
+    // backgroundColor: 'white', // maybe we wanna do but idk 
   },
 });
 
