@@ -1,6 +1,22 @@
-import React, { useState } from 'react';
-import { Linking, View, Text, TouchableOpacity, TextInput, Alert, StyleSheet, ImageBackground } from 'react-native';
-import { Link } from 'expo-router';
+import React, { useState } from "react";
+import {
+  Linking,
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  StyleSheet,
+  ImageBackground,
+  StatusBar,
+  SafeAreaView,
+} from "react-native";
+import { Link } from "expo-router";
+import GlobalStyles from "../styles/GlobalStyleSheet";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
+
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const API_URL = 'http://10.74.29.161:9000/signup';
 const SignupScreen = () => {
@@ -43,38 +59,61 @@ const SignupScreen = () => {
 
 
   return (
-    <ImageBackground source={require('../assets/images/background_white.jpg')
-    } style={styles.container}>
-      <Text style={styles.log}>Get Started </Text>
-      <TextInput style={styles.input} placeholder="email" value={email} onChangeText={setemail} />
-      <TextInput style={styles.input} placeholder="username" value={username} onChangeText={setname} />
-      <TextInput style={styles.input} placeholder="password" value={password} onChangeText={setpass} secureTextEntry />
-      <Text style={styles.button} onPress={submit}>Sign in</Text>
-      <Link href='/login'>
-        <Text style={styles.signup}>Already have an account? Sign in here</Text>
-      </Link>
-    </ImageBackground>
+    <SafeAreaProvider style={{ flex: 1 }}>
+      <StatusBar hidden />
+
+      <ImageBackground
+        source={require("../assets/images/wave_background_blue.png")}
+        resizeMode="stretch"
+        style={[GlobalStyles.image, { backgroundColor: "white" }]}
+      />
+
+      <SafeAreaView
+        style={[
+          { flex: 1.5, backgroundColor: "white" },
+          GlobalStyles.centeredContainer,
+        ]}
+      >
+        <View style={{ padding: 20 }}>
+          <Text style={[GlobalStyles.title, { color: "black" }]}>Sign Up</Text>
+
+          <TextInput
+            style={GlobalStyles.input}
+            placeholder="email"
+            value={email}
+            placeholderTextColor="#000080"
+            onChangeText={setemail}
+          />
+
+          <TextInput
+            style={GlobalStyles.input}
+            placeholder="username"
+            value={username}
+            placeholderTextColor="#000080"
+            onChangeText={setname}
+          />
+          <TextInput
+            style={GlobalStyles.input}
+            placeholder="password"
+            value={password}
+            placeholderTextColor="#000080"
+            onChangeText={setpass}
+            secureTextEntry
+          />
+
+          <TouchableOpacity style={GlobalStyles.button} onPress={submit}>
+            <Text style={GlobalStyles.buttonText}>Sign in</Text>
+          </TouchableOpacity>
+
+          <Link href="/login" style={{ marginTop: 5 }}>
+            <Text style={GlobalStyles.reminder}>
+              Already have an account? Sign in here
+            </Text>
+          </Link>
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
-
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1, backgroundColor: '#fff', padding: 20, marginBottom: 20,
-  },
-  log: {
-    marginTop: 60, justifyContent: 'center', textAlign: 'center', alignItems: 'center', fontSize: 30, fontWeight: 'bold', color: '#000080', fontFamily: 'SF Pro', marginBottom: 60
-  },
-  input: {
-    justifyContent: 'center', textAlign: 'left', alignItems: 'center', height: 46, fontSize: 13, marginBottom: 20, paddingLeft: 10, borderWidth: 1, borderRadius: 15, width: '100%', borderColor: '#BEDCF9', backgroundColor: '#BEDCF9', color: 'grey'
-  },
-  button: {
-    fontWeight: 'bold', justifyContent: 'center', textAlign: 'center', alignItems: 'center', color: 'white', fontSize: 18, padding: 10, marginTop: 20, borderWidth: 1, borderColor: '#FCA950', borderRadius: 15, width: '100%', height: 50, backgroundColor: '#FCA950'
-  },
-  forgot: { lineHeight: 14, fontWeight: 'bold', textAlign: 'right', color: '#000080', fontFamily: 'SF Pro', fontSize: 14 }
-  ,
-  signup: { marginTop: 30, lineHeight: 24, fontWeight: 'bold', color: 'grey', fontFamily: 'SF Pro', fontSize: 15, marginBottom: 0, textAlign: 'center' }
-});
-
 
 export default SignupScreen;
