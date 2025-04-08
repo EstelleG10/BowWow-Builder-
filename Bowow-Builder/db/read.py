@@ -3,12 +3,11 @@ import psycopg  # psycopg v3
  
  # Connect to local PostgreSQL
 conn = psycopg.connect(
-    
     dbname="itemsdb",
-    user="postgres",  # Replace with your macOS username if needed
-    host="localhost",
-    port="5432",
-    password="1235"  # Only include if you've set a password
+    user="estellegerber",
+    password="megu$taDatab$$3s",
+    host="bowwow-db.cneo2g2w2qei.us-east-2.rds.amazonaws.com",
+    port="5432"
     )
 cur = conn.cursor()
 

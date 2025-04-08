@@ -15,8 +15,8 @@ bcrypt = Bcrypt(app)
 # Database config
 DB_NAME = "itemsdb"
 DB_USER = "estellegerber"
-DB_PASSWORD = ""
-DB_HOST = "localhost"
+DB_PASSWORD = "megu$taDatab$$3s"
+DB_HOST = "bowwow-db.cneo2g2w2qei.us-east-2.rds.amazonaws.com"
 DB_PORT = "5432"
 
 # Database connection
@@ -31,9 +31,14 @@ def get_db_connection():
 
 # Serve images from /assets
 @app.route('/assets/<path:filename>')
-def serve_image(filename):
-    root_dir = os.path.join(os.path.dirname(__file__), 'assets')
-    return send_from_directory(root_dir, filename)
+def serve_assets(filename):
+    return send_from_directory('assets', filename)
+
+# @app.route('/assets/<path:filename>')
+# def serve_image(filename):
+#     root_dir = os.path.join(os.path.dirname(__file__), 'assets')
+#     return send_from_directory(root_dir, filename)
+
 
 # Get items (now includes img_route!)
 @app.route("/items", methods=["GET"])
@@ -260,7 +265,7 @@ def login():
         curr.execute("SELECT * FROM users WHERE username = %s;", (username,))
         exists_user = curr.fetchone()        
         # MAKE SURE TO CHECK THIS W UR LOCAL DB EVERYONE!!!!!
-        if exists_user and bcrypt.check_password_hash(exists_user[2], password):
+        if exists_user and bcrypt.check_password_hash(exists_user[3], password):
             token = jwt.encode({
                 'user_id': exists_user[0],
                 'username': exists_user[1],

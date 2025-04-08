@@ -34,7 +34,7 @@ const hardcodedBundles = [
 const submitRating = async (mealId: number, rating: string) => {
   const userId = 1; // NEED TO CHANGE LATER 
   try {
-    const res = await fetch("http://10.74.29.161:9000/api/ratings", {
+    const res = await fetch("http://13.58.115.85:9000/api/ratings", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -62,7 +62,7 @@ const Home = () => {
 
   const fetchComments = async (mealId: number) => {
     try {
-      const res = await fetch(`http://10.74.29.161:9000/api/meals/${mealId}/comments`);
+      const res = await fetch(`http://13.58.115.85:9000/api/meals/${mealId}/comments`);
       const data = await res.json();
       setComments(prev => ({ ...prev, [mealId]: data }));
     } catch (err) {
@@ -73,7 +73,7 @@ const Home = () => {
   useEffect(() => {
     const fetchBundles = async () => {
       try {
-        const response = await fetch('http://10.74.29.161:9000/api/meals');
+        const response = await fetch('http://13.58.115.85:9000/api/meals');
         const data = await response.json();
         setBundles(data);
         data.forEach((meal: any) => fetchComments(meal.id));
@@ -150,7 +150,7 @@ const Home = () => {
                         <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
                           {trimmedRoute ? (
                             <Image
-                              source={{ uri: `http://10.74.29.161:9000/${trimmedRoute}` }}
+                              source={{ uri: `http://13.58.115.85:9000/${trimmedRoute}` }}
                               style={styles.bundleImage}
                               resizeMode="contain"
                               onError={() =>
@@ -200,7 +200,7 @@ const Home = () => {
                       const text = ratings[`comment_${bundle.id}`];
                       if (!text?.trim()) return alert("Comment cannot be empty.");
                       try {
-                        await fetch("http://10.74.29.161:9000/api/comments", {
+                        await fetch("http://13.58.115.85:9000/api/comments", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
