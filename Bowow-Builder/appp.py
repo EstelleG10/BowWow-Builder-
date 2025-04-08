@@ -2,10 +2,10 @@ from flask import Flask, request, jsonify, send_from_directory
 import psycopg2
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
-import psycopg2
 import jwt
 import os
 from datetime import timedelta, datetime, timezone
+
 print("I am in the right file ")
 app = Flask(__name__)
 app.config['key'] = 'value'
@@ -62,7 +62,7 @@ def get_items():
         for row in rows
     ])
 
-# Get meals (includes avg_rating and img_route for each item)
+# Get meals (includes avg_rating, comments, and img_route for each item)
 @app.route("/api/meals", methods=["GET"])
 def get_meals():
     print("here in get meals")
@@ -85,10 +85,28 @@ def get_meals():
         GROUP BY meal_id;
     """)
     rating_rows = cur.fetchall()
+    ratings_dict = {row[0]: row[1] for row in rating_rows}
+
+    # Get comments for each meal
+    cur.execute("""
+        SELECT meal_id, users.username, c.text, c.created_at
+        FROM comments c
+        JOIN users ON c.user_id = users.id
+        ORDER BY c.created_at DESC;
+    """)
+    comment_rows = cur.fetchall()
     cur.close()
     conn.close()
 
-    ratings_dict = {row[0]: row[1] for row in rating_rows}
+    comments_dict = {}
+    for meal_id, username, text, created_at in comment_rows:
+        if meal_id not in comments_dict:
+            comments_dict[meal_id] = []
+        comments_dict[meal_id].append({
+            "user": username,
+            "text": text,
+            "created_at": created_at.isoformat()
+        })
 
     meals = {}
     for meal_id, meal_name, item_name, item_price, item_img in rows:
@@ -97,6 +115,7 @@ def get_meals():
                 "id": meal_id,
                 "name": meal_name,
                 "avg_rating": ratings_dict.get(meal_id),
+                "comments": comments_dict.get(meal_id, []),
                 "items": []
             }
         meals[meal_id]["items"].append({
