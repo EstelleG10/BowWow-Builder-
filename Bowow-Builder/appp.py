@@ -22,7 +22,7 @@ DB_PORT = "5432"
 # Database connection
 def get_db_connection():
     return psycopg2.connect(
-        dbname=DB_NAME,
+        dbname=DB_NAME,ƒ
         user=DB_USER,
         password=DB_PASSWORD,
         host=DB_HOST,
@@ -62,7 +62,7 @@ def get_items():
         for row in rows
     ])
 
-# Get meals (includes avg_rating, comments, and img_route for each item)
+# Get meals (has avg_rating, comments, and img_route for each item)
 @app.route("/api/meals", methods=["GET"])
 def get_meals():
     print("here in get meals")
@@ -134,6 +134,7 @@ def post_rating():
     meal_id = data["meal_id"]
     rating = data["rating"]
 
+     # BC FOR NOW WE WANNA MAKE SURE THEY BETWEEN 1 AND 5
     if rating < 1 or rating > 5:
         return jsonify({"error": "Rating must be between 1 and 5"}), 400
 
@@ -170,6 +171,7 @@ def post_comment():
     cur.close()
     conn.close()
 
+    # debugging (can prob remove later )
     return jsonify({"message": "Comment added!"}), 201
 
 # Get comments for a meal
@@ -214,6 +216,7 @@ def create_meal():
     cur = conn.cursor()
 
     try:
+        # add our total price 
         cur.execute("SELECT SUM(price) FROM items WHERE id = ANY(%s);", (item_ids,))
         total_price = cur.fetchone()[0] or 0
 
@@ -256,6 +259,7 @@ def login():
     try:
         curr.execute("SELECT * FROM users WHERE username = %s;", (username,))
         exists_user = curr.fetchone()        
+        # MAKE SURE TO CHECK THIS W UR LOCAL DB EVERYONE!!!!!
         if exists_user and bcrypt.check_password_hash(exists_user[2], password):
             token = jwt.encode({
                 'user_id': exists_user[0],
@@ -300,6 +304,9 @@ def signup():
 
     finally:
         curr.close()
+        
+        
+        ## CHANGE PORT IF UR ON DIF ONE
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=9000)

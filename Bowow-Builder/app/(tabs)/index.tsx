@@ -185,6 +185,7 @@ const Home = () => {
                 )}
                 <View style={styles.commentInputSection}>
                   <TextInput
+                  // for comments 
                     style={styles.commentInput}
                     placeholder="Add a comment..."
                     placeholderTextColor="#aaa"
@@ -203,7 +204,7 @@ const Home = () => {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
-                            user_id: 1, // 🔁 Change this later to actual logged-in user
+                            user_id: 1, //  Change this later to actual logged-in user
                             meal_id: bundle.id,
                             text: text.trim(),
                           }),
@@ -230,6 +231,7 @@ const Home = () => {
   );
 };
 
+// make sure the width matches user computer 
 const screenWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
