@@ -34,7 +34,7 @@ const hardcodedBundles = [
 const submitRating = async (mealId: number, rating: string) => {
   const userId = 1; // NEED TO CHANGE LATER 
   try {
-    const res = await fetch("http://10.74.29.161:9000/api/ratings", {
+    const res = await fetch("http://13.58.115.85:9000/api/ratings", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
