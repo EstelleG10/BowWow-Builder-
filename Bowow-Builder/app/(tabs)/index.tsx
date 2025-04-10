@@ -34,7 +34,7 @@ const hardcodedBundles = [
 const submitRating = async (mealId: number, rating: string) => {
   const userId = 1; // NEED TO CHANGE LATER 
   try {
-    const res = await fetch("http://13.58.115.85:9000/api/ratings", {
+    const res = await fetch("http://10.74.29.161:9000/api/ratings", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,7 +53,6 @@ const submitRating = async (mealId: number, rating: string) => {
     console.error("Error submitting rating:", error);
   }
 };
-
 const Home = () => {
   const [bundles, setBundles] = useState<any[]>([]);
   const [error, setError] = useState(false);
@@ -62,7 +61,7 @@ const Home = () => {
 
   const fetchComments = async (mealId: number) => {
     try {
-      const res = await fetch(`http://13.58.115.85:9000/api/meals/${mealId}/comments`);
+      const res = await fetch(`http://10.74.29.161:9000/api/meals/${mealId}/comments`);
       const data = await res.json();
       setComments(prev => ({ ...prev, [mealId]: data }));
     } catch (err) {
@@ -70,19 +69,61 @@ const Home = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchBundles = async () => {
-      try {
-        const response = await fetch('http://13.58.115.85:9000/api/meals');
-        const data = await response.json();
-        setBundles(data);
-        data.forEach((meal: any) => fetchComments(meal.id));
-      } catch (err) {
-        console.error('Error fetching meals:', err);
-        setError(true);
-      }
-    };
+  const fetchBundles = async () => {
+    try {
+      const response = await fetch('http://10.74.29.161:9000/api/meals');
+      const data = await response.json();
+      setBundles(data);
+      data.forEach((meal: any) => fetchComments(meal.id));
+    } catch (err) {
+      console.error('Error fetching meals:', err);
+      setError(true);
+    }
+  };
 
+  const submitRating = async (mealId: number, rating: string) => {
+    const userId = 1; // NEED TO CHANGE LATER
+    try {
+      const res = await fetch("http://10.74.29.161:9000/api/ratings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          meal_id: mealId,
+          rating: parseInt(rating),
+        }),
+      });
+
+      const data = await res.json();
+      console.log("Rating response:", data);
+      alert("Thanks for rating!");
+      await fetchBundles(); // 👈 REFRESH to get updated avg_rating
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number, mealId: number) => {
+    try {
+      const res = await fetch(`http://10.74.29.161:9000/api/comments/${commentId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        alert('Comment deleted!');
+        fetchComments(mealId); // Refresh comments after deletion
+      } else {
+        alert('Failed to delete comment.');
+      }
+    } catch (err) {
+      console.error('Error deleting comment:', err);
+      alert('An error occurred.');
+    }
+  };
+
+  useEffect(() => {
     fetchBundles();
   }, []);
 
@@ -150,7 +191,7 @@ const Home = () => {
                         <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
                           {trimmedRoute ? (
                             <Image
-                              source={{ uri: `http://13.58.115.85:9000/${trimmedRoute}` }}
+                              source={{ uri: `http://10.74.29.161:9000/${trimmedRoute}` }}
                               style={styles.bundleImage}
                               resizeMode="contain"
                               onError={() =>
@@ -179,13 +220,20 @@ const Home = () => {
                       <View key={i} style={styles.commentBox}>
                         <Text style={styles.commentUser}>{c.user}</Text>
                         <Text style={styles.commentText}>{c.text}</Text>
+                        <Pressable
+                          style={styles.deleteButton}
+                          onPress={() => handleDeleteComment(c.id, bundle.id)}
+                        >
+                          <Text style={styles.deleteText}>Delete</Text>
+                        </Pressable>
                       </View>
                     ))}
+
                   </View>
                 )}
                 <View style={styles.commentInputSection}>
                   <TextInput
-                  // for comments 
+                    // for comments 
                     style={styles.commentInput}
                     placeholder="Add a comment..."
                     placeholderTextColor="#aaa"
@@ -200,7 +248,7 @@ const Home = () => {
                       const text = ratings[`comment_${bundle.id}`];
                       if (!text?.trim()) return alert("Comment cannot be empty.");
                       try {
-                        await fetch("http://13.58.115.85:9000/api/comments", {
+                        await fetch("http://10.74.29.161:9000/api/comments", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
@@ -223,7 +271,7 @@ const Home = () => {
 
               </View>
             ))}
-              </ScrollView>
+          </ScrollView>
 
         </SafeAreaView>
       </SafeAreaProvider>
@@ -330,6 +378,42 @@ const styles = StyleSheet.create({
   commentText: {
     color: '#fff',
   },
+  deleteButton: {
+    marginTop: 4,
+    alignSelf: 'flex-start',
+    backgroundColor: '#FF4C4C',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+  },
+
+  deleteText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+  commentInputSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+
+  commentInput: {
+    flex: 1,
+    height: 40,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    color: '#000',
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginRight: 10,
+  },
+
+
 });
 
 export default Home;

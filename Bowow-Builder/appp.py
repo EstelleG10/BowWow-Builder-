@@ -15,8 +15,8 @@ bcrypt = Bcrypt(app)
 # Database config
 DB_NAME = "itemsdb"
 DB_USER = "estellegerber"
-DB_PASSWORD = "megu$taDatab$$3s"
-DB_HOST = "bowwow-db.cneo2g2w2qei.us-east-2.rds.amazonaws.com"
+DB_PASSWORD = ""
+DB_HOST = "localhost"
 DB_PORT = "5432"
 
 # Database connection
@@ -74,6 +74,7 @@ def get_meals():
     conn = get_db_connection()
     cur = conn.cursor()
 
+    # Get meal + item info
     cur.execute("""
         SELECT m.id, m.name, i.name, i.price, i.img_route
         FROM meals m
@@ -83,7 +84,7 @@ def get_meals():
     """)
     rows = cur.fetchall()
 
-    # Get average ratings for each meal
+    # Get average ratings
     cur.execute("""
         SELECT meal_id, ROUND(AVG(rating), 1) as avg_rating
         FROM ratings
@@ -92,9 +93,9 @@ def get_meals():
     rating_rows = cur.fetchall()
     ratings_dict = {row[0]: row[1] for row in rating_rows}
 
-    # Get comments for each meal
+    # Get comments (now with comment ID for deleting of commentes)
     cur.execute("""
-        SELECT meal_id, users.username, c.text, c.created_at
+        SELECT c.id, c.meal_id, users.username, c.text, c.created_at
         FROM comments c
         JOIN users ON c.user_id = users.id
         ORDER BY c.created_at DESC;
@@ -104,15 +105,17 @@ def get_meals():
     conn.close()
 
     comments_dict = {}
-    for meal_id, username, text, created_at in comment_rows:
+    for comment_id, meal_id, username, text, created_at in comment_rows:
         if meal_id not in comments_dict:
             comments_dict[meal_id] = []
         comments_dict[meal_id].append({
+            "id": comment_id,
             "user": username,
             "text": text,
             "created_at": created_at.isoformat()
         })
 
+    # Build final meals response
     meals = {}
     for meal_id, meal_name, item_name, item_price, item_img in rows:
         if meal_id not in meals:
@@ -185,7 +188,7 @@ def get_comments(meal_id):
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
-        SELECT users.username, c.text, c.created_at
+        SELECT c.id, users.username, c.text, c.created_at
         FROM comments c
         JOIN users ON c.user_id = users.id
         WHERE c.meal_id = %s
@@ -196,9 +199,27 @@ def get_comments(meal_id):
     conn.close()
 
     return jsonify([
-        {"user": row[0], "text": row[1], "created_at": row[2].isoformat()}
+        { "id": row[0], "user": row[1], "text": row[2], "created_at": row[3].isoformat()}
         for row in rows
     ])
+
+# Delete a comment by ID
+@app.route("/api/comments/<int:comment_id>", methods=["DELETE"])
+def delete_comment(comment_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("DELETE FROM comments WHERE id = %s;", (comment_id,))
+        conn.commit()
+        return jsonify({"message": "Comment deleted successfully"}), 200
+    except Exception as e:
+        print("Error deleting comment:", e)
+        conn.rollback()
+        return jsonify({"error": "Failed to delete comment"}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 # Create a new meal
 @app.route("/api/meals", methods=["POST"])
@@ -249,7 +270,8 @@ def create_meal():
         cur.close()
         conn.close()
 
-        
+
+
 @app.route('/login', methods=['POST'])
 def login():
     global token
@@ -265,7 +287,7 @@ def login():
         curr.execute("SELECT * FROM users WHERE username = %s;", (username,))
         exists_user = curr.fetchone()        
         # MAKE SURE TO CHECK THIS W UR LOCAL DB EVERYONE!!!!!
-        if exists_user and bcrypt.check_password_hash(exists_user[3], password):
+        if exists_user and bcrypt.check_password_hash(exists_user[2], password):
             token = jwt.encode({
                 'user_id': exists_user[0],
                 'username': exists_user[1],
