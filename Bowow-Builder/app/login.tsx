@@ -14,11 +14,12 @@ import { Link } from "expo-router";
 import { useRouter } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import GlobalStyles from "../styles/GlobalStyleSheet";
+import * as Constants from '../constants';
 
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://10.74.29.161:9000/login';
+const API_URL = Constants.IP_ADDRESS + 'login';
 const LoginScreen = () => {
   const router = useRouter();
   const [username, setname] = useState('');

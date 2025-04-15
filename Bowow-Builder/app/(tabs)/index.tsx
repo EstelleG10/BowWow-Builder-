@@ -12,6 +12,7 @@ import {
   Pressable,
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import * as Constants from '../../constants';
 
 const hardcodedBundles = [
   {
@@ -34,7 +35,7 @@ const hardcodedBundles = [
 const submitRating = async (mealId: number, rating: string) => {
   const userId = 1; // NEED TO CHANGE LATER 
   try {
-    const res = await fetch("http://10.74.29.161:9000/api/ratings", {
+    const res = await fetch(Constants.IP_ADDRESS + "api/ratings", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -61,7 +62,7 @@ const Home = () => {
 
   const fetchComments = async (mealId: number) => {
     try {
-      const res = await fetch(`http://10.74.29.161:9000/api/meals/${mealId}/comments`);
+      const res = await fetch(Constants.IP_ADDRESS + `api/meals/${mealId}/comments`);
       const data = await res.json();
       setComments(prev => ({ ...prev, [mealId]: data }));
     } catch (err) {
@@ -71,7 +72,7 @@ const Home = () => {
 
   const fetchBundles = async () => {
     try {
-      const response = await fetch('http://10.74.29.161:9000/api/meals');
+      const response = await fetch(Constants.IP_ADDRESS + 'api/meals');
       const data = await response.json();
       setBundles(data);
       data.forEach((meal: any) => fetchComments(meal.id));
@@ -84,7 +85,7 @@ const Home = () => {
   const submitRating = async (mealId: number, rating: string) => {
     const userId = 1; // NEED TO CHANGE LATER
     try {
-      const res = await fetch("http://10.74.29.161:9000/api/ratings", {
+      const res = await fetch(Constants.IP_ADDRESS + "api/ratings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -107,7 +108,7 @@ const Home = () => {
 
   const handleDeleteComment = async (commentId: number, mealId: number) => {
     try {
-      const res = await fetch(`http://10.74.29.161:9000/api/comments/${commentId}`, {
+      const res = await fetch(Constants.IP_ADDRESS + `api/comments/${commentId}`, {
         method: 'DELETE',
       });
 
@@ -191,7 +192,7 @@ const Home = () => {
                         <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
                           {trimmedRoute ? (
                             <Image
-                              source={{ uri: `http://10.74.29.161:9000/${trimmedRoute}` }}
+                              source={{ uri: Constants.IP_ADDRESS + `${trimmedRoute}` }}
                               style={styles.bundleImage}
                               resizeMode="contain"
                               onError={() =>
@@ -248,7 +249,7 @@ const Home = () => {
                       const text = ratings[`comment_${bundle.id}`];
                       if (!text?.trim()) return alert("Comment cannot be empty.");
                       try {
-                        await fetch("http://10.74.29.161:9000/api/comments", {
+                        await fetch(Constants.IP_ADDRESS + "api/comments", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({

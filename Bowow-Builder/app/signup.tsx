@@ -14,11 +14,10 @@ import {
 import { Link } from "expo-router";
 import GlobalStyles from "../styles/GlobalStyleSheet";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-
-
+import * as Constants from '../constants';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-const API_URL = 'http://10.74.29.161:9000/signup';
+const API_URL = Constants.IP_ADDRESS + 'signup';
 const SignupScreen = () => {
   const [email, setemail] = useState('');
   const [username, setname] = useState('');

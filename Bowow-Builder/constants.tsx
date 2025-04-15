@@ -1,0 +1,1 @@
+export const IP_ADDRESS = 'http://10.74.149.41:9000/';

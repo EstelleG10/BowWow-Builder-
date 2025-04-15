@@ -10,6 +10,8 @@ import {
   Alert,
 } from 'react-native';
 import { useCart } from '../cartcontext';
+import * as Constants from '../../constants';
+
 
 export default function CartScreen() {
   const { cart, removeFromCart } = useCart();
@@ -31,7 +33,7 @@ export default function CartScreen() {
     };
 
     try {
-      const response = await fetch('http://10.74.29.161:9000/api/meals', {
+      const response = await fetch(Constants.IP_ADDRESS + 'api/meals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(mealData),

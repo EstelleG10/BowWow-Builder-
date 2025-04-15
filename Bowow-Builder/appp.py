@@ -14,8 +14,8 @@ bcrypt = Bcrypt(app)
 
 # Database config
 DB_NAME = "itemsdb"
-DB_USER = "estellegerber"
-DB_PASSWORD = ""
+DB_USER = "leslie"
+DB_PASSWORD = "1234"
 DB_HOST = "localhost"
 DB_PORT = "5432"
 

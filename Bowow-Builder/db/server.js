@@ -31,7 +31,7 @@ app.post("/signup", async (req, res) => {
     try {
         await pool.query(
             "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)",
-            [username, email, password] // 🔒 we'll hash later
+            [username, email, password] // we'll hash later
         );
         res.status(201).json({ message: "Signup successful" });
     } catch (err) {
@@ -60,5 +60,5 @@ app.post("/login", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Backend running at http://172.27.170.129:${PORT}`);
+    console.log(`Backend running at http://172.27.170.129:${PORT}`);
 });
