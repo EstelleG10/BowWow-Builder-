@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,8 +10,11 @@ import {
   TextInput,
   Dimensions,
   Pressable,
+  RefreshControl, // adding live udpate on index page 
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+
 import * as Constants from '../../constants';
 
 const hardcodedBundles = [
@@ -59,6 +62,7 @@ const Home = () => {
   const [error, setError] = useState(false);
   const [ratings, setRatings] = useState<{ [mealId: number]: string }>({});
   const [comments, setComments] = useState<{ [mealId: number]: any[] }>({});
+  const [loading, setLoading] = useState(false);
 
   const fetchComments = async (mealId: number) => {
     try {
@@ -70,17 +74,21 @@ const Home = () => {
     }
   };
 
-  const fetchBundles = async () => {
+  // will fetch after each meal is placed NEED TO SEE HOW THIS WOULD WORK FOR EVERYONE
+  const fetchBundles = useCallback(async () => {
     try {
-      const response = await fetch(Constants.IP_ADDRESS + 'api/meals');
+      setLoading(true);
+      const response = await fetch('http://10.66.76.62:9000/api/meals');
       const data = await response.json();
       setBundles(data);
       data.forEach((meal: any) => fetchComments(meal.id));
     } catch (err) {
       console.error('Error fetching meals:', err);
       setError(true);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
   const submitRating = async (mealId: number, rating: string) => {
     const userId = 1; // NEED TO CHANGE LATER
@@ -127,6 +135,13 @@ const Home = () => {
   useEffect(() => {
     fetchBundles();
   }, []);
+  
+  useFocusEffect(
+    useCallback(() => {
+      fetchBundles();
+    }, [fetchBundles])
+  );
+  
 
   const displayBundles = error || bundles.length === 0 ? hardcodedBundles : bundles;
 
