@@ -79,7 +79,15 @@ const Home = () => {
     try {
       setLoading(true);
       const response = await fetch('http://10.66.76.62:9000/api/meals');
-      const data = await response.json();
+      let data = await response.json();
+
+      // sort the ratings from most to least stars
+      data.sort((a, b) => {
+        const ratingA = a.avg_rating ?? 0; 
+        const ratingB = b.avg_rating ?? 0;
+        return ratingB - ratingA;
+      });
+
       setBundles(data);
       data.forEach((meal: any) => fetchComments(meal.id));
     } catch (err) {
@@ -89,6 +97,7 @@ const Home = () => {
       setLoading(false);
     }
   }, []);
+
 
   const submitRating = async (mealId: number, rating: string) => {
     const userId = 1; // NEED TO CHANGE LATER
@@ -108,7 +117,7 @@ const Home = () => {
       const data = await res.json();
       console.log("Rating response:", data);
       alert("Thanks for rating!");
-      await fetchBundles(); // 👈 REFRESH to get updated avg_rating
+      await fetchBundles(); // REFRESH to get updated avg_rating
     } catch (error) {
       console.error("Error submitting rating:", error);
     }
@@ -135,13 +144,13 @@ const Home = () => {
   useEffect(() => {
     fetchBundles();
   }, []);
-  
+
   useFocusEffect(
     useCallback(() => {
       fetchBundles();
     }, [fetchBundles])
   );
-  
+
 
   const displayBundles = error || bundles.length === 0 ? hardcodedBundles : bundles;
 
@@ -382,26 +391,38 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   commentBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 8,
-    borderRadius: 6,
-    marginBottom: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
+
   commentUser: {
     color: '#FFD700',
-    fontWeight: '600',
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginBottom: 4,
   },
+
   commentText: {
-    color: '#fff',
+    color: '#EEE',
+    fontSize: 14,
+    lineHeight: 20,
   },
+
   deleteButton: {
-    marginTop: 4,
-    alignSelf: 'flex-start',
-    backgroundColor: '#FF4C4C',
+    marginTop: 8,
+    alignSelf: 'flex-end',
+    backgroundColor: '#aa2e2e',
     paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 4,
+    paddingHorizontal: 10,
+    borderRadius: 6,
   },
+
 
   deleteText: {
     color: 'white',
