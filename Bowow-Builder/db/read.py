@@ -4,9 +4,10 @@ import psycopg  # psycopg v3
  # Connect to local PostgreSQL
 conn = psycopg.connect(
     dbname="itemsdb",
-    user="estellegerber",
-    password="megu$taDatab$$3s",
-    host="bowwow-db.cneo2g2w2qei.us-east-2.rds.amazonaws.com",
+    user="lesli",
+    password="1234",
+    host = "localhost",
+    # host="bowwow-db.cneo2g2w2qei.us-east-2.rds.amazonaws.com",
     port="5432"
     )
 cur = conn.cursor()
@@ -51,12 +52,18 @@ CREATE TABLE IF NOT EXISTS item_categories (
 
 # meals 
 cur.execute("""
-    CREATE TABLE IF NOT EXISTS meals (id SERIAL PRIMARY KEY,name TEXT NOT NULL,total_price NUMERIC NOT NULL CHECK (total_price <= 12),user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
+    CREATE TABLE IF NOT EXISTS meals (id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL, 
+            total_price NUMERIC NOT NULL CHECK (total_price <= 12),
+            user_id INTEGER REFERENCES users(id) ON DELETE SET NULL, 
+            created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 """)
 # individual items in a meal
 cur.execute("""
-    CREATE TABLE IF NOT EXISTS meal_items (meal_id INTEGER REFERENCES meals(id) ON DELETE CASCADE,item_id INTEGER REFERENCES items(id) ON DELETE CASCADE, PRIMARY KEY (meal_id, item_id));
+    CREATE TABLE IF NOT EXISTS meal_items (meal_id INTEGER REFERENCES meals(id) ON DELETE CASCADE,
+            item_id INTEGER REFERENCES items(id) ON DELETE CASCADE, 
+            PRIMARY KEY (meal_id, item_id));
 """)
 
 # make ratings table
@@ -78,6 +85,14 @@ CREATE TABLE IF NOT EXISTS comments (
     text TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+""")
+
+
+# LESLIE: add the time stap column if it already exists
+cur.execute("""
+    ALTER TABLE meals
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 """)
 
 conn.commit()

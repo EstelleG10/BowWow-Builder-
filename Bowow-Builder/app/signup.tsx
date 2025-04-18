@@ -101,7 +101,7 @@ const SignupScreen = () => {
           />
 
           <TouchableOpacity style={GlobalStyles.button} onPress={submit}>
-            <Text style={GlobalStyles.buttonText}>Sign in</Text>
+            <Text style={GlobalStyles.buttonText}>Sign up</Text>
           </TouchableOpacity>
 
           <Link href="/login" style={{ marginTop: 5 }}>

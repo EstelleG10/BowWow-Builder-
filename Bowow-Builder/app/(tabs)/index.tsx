@@ -78,7 +78,7 @@ const Home = () => {
   const fetchBundles = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://10.66.76.62:9000/api/meals');
+      const response = await fetch(Constants.IP_ADDRESS + 'api/meals');
       let data = await response.json();
 
       // sort the ratings from most to least stars

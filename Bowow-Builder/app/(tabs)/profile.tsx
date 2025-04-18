@@ -1,81 +1,128 @@
-import { StyleSheet, View, Text, ScrollView } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Constants from "../../constants";
 import GlobalStyles from "../../styles/GlobalStyleSheet";
+import { useFocusEffect } from "expo-router";
 
-const Profile = () => {
+type Bundle = {
+  id: number;
+  name: string;
+  created_at: string;
+  items: string[];
+};
+
+export default function Profile() {
+  // variables for profile data
+  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [bundleCount, setBundleCount] = useState(0);
+  const [avgRating, setAvgRating] = useState(0);
+  const [bundles, setBundles] = useState<Bundle[]>([]);
+
+  // focused effect to fetch profile data when 
+  useFocusEffect(
+    React.useCallback(() => {
+      let isActive = true;
+
+    (async () => {
+      const token = await AsyncStorage.getItem("jwt_token");
+      try {
+        const res = await fetch(`${Constants.IP_ADDRESS}api/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        const data = await res.json();
+        setUsername(data.username);
+        setEmail(data.email);
+        setBundleCount(data.bundleCount);
+        setAvgRating(data.avgRating);
+        setBundles(data.bundles);
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      }
+    })();
+
+      // cleanup if screen loses focus before fetch finishes
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
+
   return (
-    <SafeAreaProvider style={{ backgroundColor: "white" }}>
-      <SafeAreaView edges={["top"]}>
-        <View style={GlobalStyles.container}>
-          {/* Profile Section */}
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+        <View style={styles.wrapper}>
+          {/* Profile Header */}
           <Text style={[GlobalStyles.title, { color: "black" }]}>Profile</Text>
 
           {/* Account Information */}
           <View style={styles.accountCard}>
             <Text style={styles.accountHeader}>Account</Text>
             <View style={styles.accountInfo}>
-              <Text style={styles.accountText}>Username: RandomName</Text>
-              <Text style={styles.accountText}>Email: RandomName@yale.edu</Text>
+              <Text style={styles.accountText}>Username: {username}</Text>
+              <Text style={styles.accountText}>Email: {email}</Text>
             </View>
           </View>
 
-          {/* Stats Section */}
+          {/* Stats */}
           <View style={styles.statsCard}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>25</Text>
-              <Text style={styles.statLabel}>Meals</Text>
+              <Text style={styles.statValue}>{bundleCount}</Text>
+              <Text style={styles.statLabel}>Bundles</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>4.5</Text>
-              <Text style={styles.statLabel}>Average Stars</Text>
+              <Text style={styles.statValue}>{avgRating.toFixed(1)}</Text>
+              <Text style={styles.statLabel}>Avg Stars</Text>
             </View>
           </View>
 
-          {/* Bundle History */}
-          <Text style={[GlobalStyles.header, { fontWeight: "normal" }]}>
-            Bundle History
-          </Text>
+          {/* History */}
+          <Text style={[GlobalStyles.header, styles.historyTitle]}>Bundle History</Text>
           <View style={GlobalStyles.divider} />
 
-          {/* Scrollable Section */}
-          <ScrollView style={styles.scrollContainer}>
-            <View style={styles.bundleCard}>
-              <View style={styles.bundleHeader}>
-                <Text style={styles.label}>Hungry Man Special</Text>
-                <Text style={styles.timestamp}>May 8, 12:30 pm</Text>
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            {bundles.map((b) => (
+              <View key={b.id} style={styles.bundleCard}>
+                <View style={styles.bundleHeader}>
+                  <Text style={styles.label}>{b.name}</Text>
+                  <Text style={styles.timestamp}>
+                    {new Date(b.created_at).toLocaleString()}
+                  </Text>
+                </View>
+                <View style={styles.foodItems}>
+                  {b.items.map((item, i) => (
+                    <Text key={i} style={styles.foodItem}>
+                      • {item}
+                    </Text>
+                  ))}
+                </View>
               </View>
-              <View style={styles.foodItems}>
-                <Text style={styles.foodItem}>1x Sandwich</Text>
-                <Text style={styles.foodItem}>1x Water</Text>
-                <Text style={styles.foodItem}>2x Yogurt</Text>
-              </View>
-            </View>
-
-            <View style={styles.bundleCard}>
-              <View style={styles.bundleHeader}>
-                <Text style={styles.label}>Snack Restock</Text>
-                <Text style={styles.timestamp}>May 8, 12:30 pm</Text>
-              </View>
-              <View style={styles.foodItems}>
-                <Text style={styles.foodItem}>2x Popcorn</Text>
-                <Text style={styles.foodItem}>5x Chocolate</Text>
-              </View>
-            </View>
+            ))}
           </ScrollView>
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
   );
-};
+}
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  wrapper: {
+    flex: 1,
+    paddingHorizontal: 16,
+    backgroundColor: "white",
+  },
   accountCard: {
     backgroundColor: "#F5F5F5",
     borderRadius: 10,
     padding: 15,
-    marginBottom: 20,
-    marginTop: 20,
+    marginVertical: 20,
   },
   accountHeader: {
     fontSize: 18,
@@ -91,6 +138,17 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 5,
   },
+  userName: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 16,
+    color: "#333",
+  },
+  userEmail: {
+    fontSize: 14,
+    color: "gray",
+    marginBottom: 16,
+  },
   statsCard: {
     backgroundColor: "#002F6A",
     borderRadius: 10,
@@ -98,64 +156,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  statItem: {
-    alignItems: "center",
+  statItem: { alignItems: "center" },
+  statValue: { fontSize: 24, fontWeight: "bold", color: "white" },
+  statLabel: { fontSize: 14, color: "white", marginTop: 4 },
+  historyTitle: {
+    fontWeight: "normal",
+    marginBottom: 8,
   },
-  statValue: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "white",
-  },
-  statLabel: {
-    fontSize: 14,
-    color: "white",
-  },
+  scrollContainer: { paddingBottom: 20 },
   bundleCard: {
     backgroundColor: "#F5F5F5",
     borderRadius: 10,
     padding: 15,
-    marginTop: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    marginBottom: 16,
   },
   bundleHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
     marginBottom: 10,
   },
-  timestamp: {
-    fontSize: 12,
-    color: "gray",
-  },
-  text: {
-    fontSize: 16,
-    color: "#333",
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "bold",
-  },
-  foodItems: {
-    marginLeft: 10,
-    marginBottom: 10,
-  },
-  foodItem: {
-    fontSize: 16,
-    color: "#333",
-    marginBottom: 5,
-  },
-  scrollContainer: {
-    paddingHorizontal: 10,
-    paddingBottom: 20,
-  },
+  timestamp: { fontSize: 12, color: "gray" },
+  label: { fontSize: 16, fontWeight: "bold", color: "#333" },
+  foodItems: { marginLeft: 8 },
+  foodItem: { fontSize: 16, color: "#333", marginBottom: 4 },
 });
-
-export default Profile;
