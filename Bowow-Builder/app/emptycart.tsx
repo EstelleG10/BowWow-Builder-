@@ -13,7 +13,7 @@ const EmptyCart = () => {
         <View style={styles.container}>
       <Image
         style={styles.image}
-        source={require("../assets/images/emptycart.webp")}
+        // source={require("../assets/images/emptycart.webp")}
         placeholder={{ blurhash }}
         contentFit="cover"
         transition={1000}
