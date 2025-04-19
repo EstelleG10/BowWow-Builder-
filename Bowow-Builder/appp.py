@@ -5,6 +5,7 @@ from flask_bcrypt import Bcrypt
 import jwt
 import os
 from datetime import timedelta, datetime, timezone
+from constants import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, INVALID_SALT
 
 print("I am in the right file ")
 app = Flask(__name__)
@@ -12,12 +13,6 @@ app.config['key'] = 'value'
 CORS(app)
 bcrypt = Bcrypt(app)
 
-# Database config
-DB_NAME = "itemsdb"
-DB_USER = "lesli"
-DB_PASSWORD = "1234"
-DB_HOST = "localhost"
-DB_PORT = "5432"
 
 # Database connection
 def get_db_connection():
@@ -365,7 +360,7 @@ def get_profile():
 #     """, (user_id,))
 #     bundle_count = cur.fetchone()[0] or 0
 
-#     # 6) Average rating across all of this user’s meals
+#     # 6) Average rating across all of this users meals
 #         #     SELECT COALESCE(AVG(r.rating), 0)
 #         #   FROM ratings r
 #         #   JOIN meals   m ON r.meal_id = m.id
@@ -435,7 +430,7 @@ def login():
         curr.execute("SELECT * FROM users WHERE username = %s;", (username,))
         exists_user = curr.fetchone()        
         # MAKE SURE TO CHECK THIS W UR LOCAL DB EVERYONE!!!!!
-        if exists_user and bcrypt.check_password_hash(exists_user[3], password):
+        if exists_user and bcrypt.check_password_hash(exists_user[INVALID_SALT], password):
             token = jwt.encode({
                 'user_id': exists_user[0],
                 'username': exists_user[1],

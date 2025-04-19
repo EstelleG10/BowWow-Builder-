@@ -1,15 +1,15 @@
 import csv
-import psycopg  # psycopg v3
+import psycopg  
+from constants import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
  
  # Connect to local PostgreSQL
 conn = psycopg.connect(
-    dbname="itemsdb",
-    user="lesli",
-    password="1234",
-    host = "localhost",
-    # host="bowwow-db.cneo2g2w2qei.us-east-2.rds.amazonaws.com",
-    port="5432"
-    )
+    dbname=DB_NAME,
+    user=DB_USER,
+    password=DB_PASSWORD,
+    host=DB_HOST,
+    port=DB_PORT
+)
 cur = conn.cursor()
 
 # Create tables (must be done before trying to DELETE from them)
@@ -24,7 +24,7 @@ cur.execute("""
 cur.execute("""
     CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL );
 """)
-# item categoryies (types)
+# item categoryies
 cur.execute("""
     CREATE TABLE IF NOT EXISTS item_categories (item_id INTEGER REFERENCES items(id) ON DELETE CASCADE,category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE,PRIMARY KEY (item_id, category_id));
 """)
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS comments (
 """)
 
 
-# LESLIE: add the time stap column if it already exists
+# add the time stap column if it already exists
 cur.execute("""
     ALTER TABLE meals
     ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
