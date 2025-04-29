@@ -145,8 +145,6 @@ def get_meals():
         })
 
     return jsonify(list(meals.values()))
-
-# Post a new rating
 @app.route("/api/ratings", methods=["POST"])
 def post_rating():
     data = request.get_json()
@@ -157,12 +155,26 @@ def post_rating():
     meal_id = data["meal_id"]
     rating = data["rating"]
 
-     # BC FOR NOW WE WANNA MAKE SURE THEY BETWEEN 1 AND 5
     if rating < 1 or rating > 5:
         return jsonify({"error": "Rating must be between 1 and 5"}), 400
 
     conn = get_db_connection()
     cur = conn.cursor()
+
+    # 🛑 Check if the user already rated this meal
+    cur.execute(
+        "SELECT id FROM ratings WHERE user_id = %s AND meal_id = %s;",
+        (user_id, meal_id)
+    )
+    existing = cur.fetchone()
+
+    if existing:
+        # If they already rated, block them
+        cur.close()
+        conn.close()
+        return jsonify({"error": "You have already rated this meal!"}), 400
+
+    # ✅ Otherwise, insert the new rating
     cur.execute(
         "INSERT INTO ratings (user_id, meal_id, rating) VALUES (%s, %s, %s);",
         (user_id, meal_id, rating)
@@ -172,6 +184,7 @@ def post_rating():
     conn.close()
 
     return jsonify({"message": "Rating saved!"}), 201
+
 
 # Post a comment
 @app.route("/api/comments", methods=["POST"])
