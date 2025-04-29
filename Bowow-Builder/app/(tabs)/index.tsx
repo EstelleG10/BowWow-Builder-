@@ -54,7 +54,7 @@ const Home = () => {
   };
 
 
-  
+
 
   const submitRating = async (mealId: number, rating: string) => {
     try {
@@ -73,12 +73,21 @@ const Home = () => {
 
       const data = await res.json();
       console.log("Rating response:", data);
-      alert("Thanks for rating!");
-      await fetchBundles(); // REFRESH to get updated avg_rating
+
+      if (res.status === 400 && data.error === "You have already rated this meal!") {
+        alert("You already rated this meal!");
+      } else if (res.ok) {
+        alert("Thanks for rating!");
+        await fetchBundles(); // ✅ Refresh bundles
+      } else {
+        alert("Something went wrong!");
+      }
     } catch (error) {
       console.error("Error submitting rating:", error);
+      alert("Network error! Please try again later.");
     }
   };
+
   // will fetch after each meal is placed NEED TO SEE HOW THIS WOULD WORK FOR EVERYONE
   const fetchBundles = useCallback(async () => {
     try {
