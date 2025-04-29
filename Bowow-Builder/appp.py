@@ -18,8 +18,8 @@ bcrypt = Bcrypt(app)
 def get_db_connection():
     return psycopg2.connect(
         dbname="itemsdb",
-        user="estellegerber",
-        password="",
+        user="postgres",
+        password="1235",
         host= "localhost",
         port= "5432"
     )
@@ -460,7 +460,7 @@ def login():
         curr.execute("SELECT * FROM users WHERE username = %s;", (username,))
         exists_user = curr.fetchone()        
         # MAKE SURE TO CHECK THIS W UR LOCAL DB EVERYONE!!!!!
-        if exists_user and bcrypt.check_password_hash(exists_user[2], password):
+        if exists_user and bcrypt.check_password_hash(exists_user[3], password):
             token = jwt.encode({
                 'user_id': exists_user[0],
                 'username': exists_user[1],

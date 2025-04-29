@@ -1,6 +1,6 @@
 DB_NAME = "itemsdb"
-DB_USER = "estellegerber"
-DB_PASSWORD = "1234"
+DB_USER = "postgres"
+DB_PASSWORD = "1235"
 DB_HOST = "localhost"
 DB_PORT = "5432"
 INVALID_SALT = 2
