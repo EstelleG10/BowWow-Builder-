@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, StyleSheet } from "react-native";
+import { View, Text, ScrollView, StyleSheet, ImageBackground } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Constants from "../../constants";
@@ -52,6 +52,10 @@ export default function Profile() {
   );
 
   return (
+    <ImageBackground
+      source={require('../../assets/images/background_white.jpg')}
+      style={styles.background}
+    >
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
         <View style={styles.wrapper}>
@@ -62,8 +66,8 @@ export default function Profile() {
           <View style={styles.accountCard}>
             <Text style={styles.accountHeader}>Account</Text>
             <View style={styles.accountInfo}>
-              <Text style={styles.accountText}>Username: {username}</Text>
-              <Text style={styles.accountText}>Email: {email}</Text>
+              <Text style={styles.accountText}>Username: User {username}</Text>
+              <Text style={styles.accountText}>Email: User@gmail.com {email}</Text>
             </View>
           </View>
 
@@ -104,19 +108,20 @@ export default function Profile() {
           </ScrollView>
         </View>
       </SafeAreaView>
-    </SafeAreaProvider>
+      </SafeAreaProvider>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "white",
+    padding: 16,
   },
   wrapper: {
     flex: 1,
     paddingHorizontal: 16,
-    backgroundColor: "white",
+  
   },
   accountCard: {
     backgroundColor: "#F5F5F5",
@@ -138,6 +143,11 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 5,
   },
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
   userName: {
     fontSize: 20,
     fontWeight: "bold",
@@ -146,7 +156,7 @@ const styles = StyleSheet.create({
   },
   userEmail: {
     fontSize: 14,
-    color: "gray",
+    color: "black",
     marginBottom: 16,
   },
   statsCard: {

@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     height: 180,
     marginRight: 15,
     borderRadius: 10,
-    backgroundColor: '#ccc',
+    backgroundColor: 'white',
   },
   itemText: {
     color: 'white',

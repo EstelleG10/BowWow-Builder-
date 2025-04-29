@@ -12,6 +12,9 @@ conn = psycopg.connect(
 )
 cur = conn.cursor()
 
+cur.execute("DROP TABLE IF EXISTS item_categories, meal_items, ratings, comments, meals, items, categories, users CASCADE;")
+conn.commit()
+
 # Create tables (must be done before trying to DELETE from them)
 print("Creating tables")
 

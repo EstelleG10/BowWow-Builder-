@@ -6,6 +6,7 @@ import {
 import { useCart } from '../cartcontext';
 import * as Constants from '../../constants';
 
+// type for each item
 type Item = {
   id: number;
   name: string;
@@ -18,13 +19,14 @@ export default function Category() {
   const [foodItems, setFoodItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [targetPrice, setTargetPrice] = useState('');
-  const [priceRange, setPriceRange] = useState('');
+  const [minPrice, setMinPrice] = useState(''); 
+  const [maxPrice, setMaxPrice] = useState(''); 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const { cart, addToCart } = useCart();
   const API_URL = Constants.IP_ADDRESS + 'items';
 
+  // fetch items from API 
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -39,31 +41,30 @@ export default function Category() {
     fetchItems();
   }, []);
 
+  // filter items w state changes
   useEffect(() => {
     filterItems();
-  }, [searchTerm, targetPrice, priceRange, selectedCategory, foodItems]);
+  }, [searchTerm, minPrice, maxPrice, selectedCategory, foodItems]);
+
   const filterItems = () => {
-    const price = parseFloat(targetPrice);
-    const range = parseFloat(priceRange);
+    const min = parseFloat(minPrice);
+    const max = parseFloat(maxPrice);
 
     const matchesSearch = (item: Item) =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesPrice = (item: Item) => {
-      if (isNaN(price) || isNaN(range)) return true;
-      return item.price >= price - range && item.price <= price + range;
+      if (isNaN(min) && isNaN(max)) return true;
+      if (!isNaN(min) && item.price < min) return false;
+      if (!isNaN(max) && item.price > max) return false;
+      return true;
     };
 
-    const matchesCategory = (item: Item) => {
-      if (!selectedCategory) return true;
-      return item.category === selectedCategory;
-    };
+    const matchesCategory = (item: Item) =>
+      !selectedCategory || item.category === selectedCategory;
 
     const results = foodItems.filter(
-      item =>
-        matchesSearch(item) &&
-        matchesPrice(item) &&
-        matchesCategory(item)
+      item => matchesSearch(item) && matchesPrice(item) && matchesCategory(item)
     );
 
     setFilteredItems(results);
@@ -92,6 +93,7 @@ export default function Category() {
             />
           </View>
 
+          {/* Horizontal category list */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
             {allCategories.map((cat, index) => (
               <TouchableOpacity
@@ -109,22 +111,23 @@ export default function Category() {
             ))}
           </ScrollView>
 
+          {/* Min and Max Price inputs */}
           <View style={styles.priceFilterBox}>
             <TextInput
               style={styles.priceInput}
-              placeholder="Target price"
+              placeholder="Min Price"
               placeholderTextColor="#888"
               keyboardType="numeric"
-              value={targetPrice}
-              onChangeText={text => setTargetPrice(text)}
+              value={minPrice}
+              onChangeText={setMinPrice}
             />
             <TextInput
               style={styles.priceInput}
-              placeholder="Range"
+              placeholder="Max Price"
               placeholderTextColor="#888"
               keyboardType="numeric"
-              value={priceRange}
-              onChangeText={text => setPriceRange(text)}
+              value={maxPrice}
+              onChangeText={setMaxPrice}
             />
             <TouchableOpacity style={styles.filterButton} onPress={filterItems}>
               <Text style={styles.buttonText}>Show Me Results</Text>
@@ -145,9 +148,7 @@ export default function Category() {
                 ) : (
                   <View style={styles.imagePlaceholder} />
                 )}
-                <Text style={styles.itemText} numberOfLines={2}>
-                  {item.name}
-                </Text>
+                <Text style={styles.itemText} numberOfLines={2}>{item.name}</Text>
                 <Text style={styles.itemText}>${item.price}</Text>
               </TouchableOpacity>
             ))}
@@ -187,6 +188,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
+  searchBar: {
+    width: 340,  
+    height: 40, 
+    maxWidth: 500,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    backgroundColor: 'white',
+    color: 'black',
+    fontSize: 16,
+  },
   categoryScroll: {
     marginBottom: 10,
     maxHeight: 40,
@@ -206,18 +219,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'black',
   },
-  searchBar: {
-    width: '95%',
-    maxWidth: 500,
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    backgroundColor: 'white',
-    color: 'black',
-    fontSize: 16,
-  },
   priceFilterBox: {
     width: '100%',
     maxWidth: 500,
@@ -225,8 +226,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   priceInput: {
-    width: '95%',
-    height: 40,
+    width: 120,  
+    height: 40,  
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 10,
@@ -282,7 +283,6 @@ const styles = StyleSheet.create({
     height: 155,
     borderRadius: 10,
     marginBottom: 5,
-    // contain makes everything fit well !!! add anywhere we have images
     resizeMode: 'contain',
   },
 });
