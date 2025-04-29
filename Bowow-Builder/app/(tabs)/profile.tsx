@@ -21,30 +21,35 @@ export default function Profile() {
   const [avgRating, setAvgRating] = useState(0);
   const [bundles, setBundles] = useState<Bundle[]>([]);
 
-  // focused effect to fetch profile data when 
   useFocusEffect(
     React.useCallback(() => {
       let isActive = true;
 
-    (async () => {
-      const token = await AsyncStorage.getItem("jwt_token");
-      try {
-        const res = await fetch(`${Constants.IP_ADDRESS}api/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error(`Status ${res.status}`);
-        const data = await res.json();
-        setUsername(data.username);
-        setEmail(data.email);
-        setBundleCount(data.bundleCount);
-        setAvgRating(data.avgRating);
-        setBundles(data.bundles);
-      } catch (err) {
-        console.error("Failed to load profile:", err);
-      }
-    })();
+      (async () => {
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          console.warn("No token found — user may not be logged in.");
+          return;
+        }
 
-      // cleanup if screen loses focus before fetch finishes
+        try {
+          const res = await fetch(`${Constants.IP_ADDRESS}api/my-meals`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) throw new Error(`Status ${res.status}`);
+          const data = await res.json();
+          if (isActive) {
+            setUsername(data.username);
+            setEmail(data.email);
+            setBundleCount(data.bundleCount);
+            setAvgRating(data.avgRating);
+            setBundles(data.bundles);
+          }
+        } catch (err) {
+          console.error("Failed to load profile:", err);
+        }
+      })();
+
       return () => {
         isActive = false;
       };
@@ -56,58 +61,59 @@ export default function Profile() {
       source={require('../../assets/images/background_white.jpg')}
       style={styles.background}
     >
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-        <View style={styles.wrapper}>
-          {/* Profile Header */}
-          <Text style={[GlobalStyles.title, { color: "black" }]}>Profile</Text>
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+          <View style={styles.wrapper}>
+            {/* Profile Header */}
+            <Text style={[GlobalStyles.title, { color: "black" }]}>Profile</Text>
 
-          {/* Account Information */}
-          <View style={styles.accountCard}>
-            <Text style={styles.accountHeader}>Account</Text>
-            <View style={styles.accountInfo}>
-              <Text style={styles.accountText}>Username: User {username}</Text>
-              <Text style={styles.accountText}>Email: User@gmail.com {email}</Text>
-            </View>
-          </View>
-
-          {/* Stats */}
-          <View style={styles.statsCard}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{bundleCount}</Text>
-              <Text style={styles.statLabel}>Bundles</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{avgRating.toFixed(1)}</Text>
-              <Text style={styles.statLabel}>Avg Stars</Text>
-            </View>
-          </View>
-
-          {/* History */}
-          <Text style={[GlobalStyles.header, styles.historyTitle]}>Bundle History</Text>
-          <View style={GlobalStyles.divider} />
-
-          <ScrollView contentContainerStyle={styles.scrollContainer}>
-            {bundles.map((b) => (
-              <View key={b.id} style={styles.bundleCard}>
-                <View style={styles.bundleHeader}>
-                  <Text style={styles.label}>{b.name}</Text>
-                  <Text style={styles.timestamp}>
-                    {new Date(b.created_at).toLocaleString()}
-                  </Text>
-                </View>
-                <View style={styles.foodItems}>
-                  {b.items.map((item, i) => (
-                    <Text key={i} style={styles.foodItem}>
-                      • {item}
-                    </Text>
-                  ))}
-                </View>
+            {/* Account Information */}
+            <View style={styles.accountCard}>
+              <Text style={styles.accountHeader}>Account</Text>
+              <View style={styles.accountInfo}>
+                <Text style={styles.accountText}>Username: User {username}</Text>
+                <Text style={styles.accountText}>Email: User@gmail.com {email}</Text>
               </View>
-            ))}
-          </ScrollView>
-        </View>
-      </SafeAreaView>
+            </View>
+
+            {/* Stats */}
+            <View style={styles.statsCard}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{bundleCount}</Text>
+                <Text style={styles.statLabel}>Bundles</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{avgRating.toFixed(1)}</Text>
+                <Text style={styles.statLabel}>Avg Stars</Text>
+              </View>
+            </View>
+
+            {/* History */}
+            <Text style={[GlobalStyles.header, styles.historyTitle]}>Bundle History</Text>
+            <View style={GlobalStyles.divider} />
+
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+              {bundles.map((b) => (
+                <View key={b.id} style={styles.bundleCard}>
+                  <View style={styles.bundleHeader}>
+                    <Text style={styles.label}>{b.name}</Text>
+                    <Text style={styles.timestamp}>
+                      {new Date(b.created_at).toLocaleString()}
+                    </Text>
+                  </View>
+                  <View style={styles.foodItems}>
+                    {b.items.map((item, i) => (
+                      <Text key={i} style={styles.foodItem}>
+                        {/* FIX THIS LATER ESTELLE THIS MEANS ONLY ITEMS SHOWNON PROF */}
+                        • {item.name}
+                      </Text>
+                    ))}
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </SafeAreaView>
       </SafeAreaProvider>
     </ImageBackground>
   );
@@ -121,7 +127,7 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     paddingHorizontal: 16,
-  
+
   },
   accountCard: {
     backgroundColor: "#F5F5F5",

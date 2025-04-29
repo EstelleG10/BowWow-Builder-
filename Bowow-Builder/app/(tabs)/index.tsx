@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import * as Constants from '../../constants';
 
@@ -35,28 +36,6 @@ const hardcodedBundles = [
   },
 ];
 
-const submitRating = async (mealId: number, rating: string) => {
-  const userId = 1; // NEED TO CHANGE LATER 
-  try {
-    const res = await fetch(Constants.IP_ADDRESS + "api/ratings", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        user_id: userId,
-        meal_id: mealId,
-        rating: parseInt(rating),
-      }),
-    });
-
-    const data = await res.json();
-    console.log("Rating response:", data);
-    alert("Thanks for rating!");
-  } catch (error) {
-    console.error("Error submitting rating:", error);
-  }
-};
 const Home = () => {
   const [bundles, setBundles] = useState<any[]>([]);
   const [error, setError] = useState(false);
@@ -74,41 +53,19 @@ const Home = () => {
     }
   };
 
-  // will fetch after each meal is placed NEED TO SEE HOW THIS WOULD WORK FOR EVERYONE
-  const fetchBundles = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(Constants.IP_ADDRESS + 'api/meals');
-      let data = await response.json();
 
-      // sort the ratings from most to least stars
-      data.sort((a, b) => {
-        const ratingA = a.avg_rating ?? 0; 
-        const ratingB = b.avg_rating ?? 0;
-        return ratingB - ratingA;
-      });
-
-      setBundles(data);
-      data.forEach((meal: any) => fetchComments(meal.id));
-    } catch (err) {
-      console.error('Error fetching meals:', err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  
 
   const submitRating = async (mealId: number, rating: string) => {
-    const userId = 1; // NEED TO CHANGE LATER
     try {
+      const token = await AsyncStorage.getItem("token");
       const res = await fetch(Constants.IP_ADDRESS + "api/ratings", {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_id: userId,
           meal_id: mealId,
           rating: parseInt(rating),
         }),
@@ -122,6 +79,29 @@ const Home = () => {
       console.error("Error submitting rating:", error);
     }
   };
+  // will fetch after each meal is placed NEED TO SEE HOW THIS WOULD WORK FOR EVERYONE
+  const fetchBundles = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(Constants.IP_ADDRESS + 'api/meals');
+      let data = await response.json();
+
+      // sort the ratings from most to least stars
+      data.sort((a, b) => {
+        const ratingA = a.avg_rating ?? 0;
+        const ratingB = b.avg_rating ?? 0;
+        return ratingB - ratingA;
+      });
+
+      setBundles(data);
+      data.forEach((meal: any) => fetchComments(meal.id));
+    } catch (err) {
+      console.error('Error fetching meals:', err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const handleDeleteComment = async (commentId: number, mealId: number) => {
     try {
@@ -273,15 +253,19 @@ const Home = () => {
                       const text = ratings[`comment_${bundle.id}`];
                       if (!text?.trim()) return alert("Comment cannot be empty.");
                       try {
+                        const token = await AsyncStorage.getItem("token");
                         await fetch(Constants.IP_ADDRESS + "api/comments", {
                           method: "POST",
-                          headers: { "Content-Type": "application/json" },
+                          headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "Content-Type": "application/json"
+                          },
                           body: JSON.stringify({
-                            user_id: 1, //  Change this later to actual logged-in user
                             meal_id: bundle.id,
                             text: text.trim(),
                           }),
                         });
+
                         fetchComments(bundle.id); // refresh comments
                         setRatings((prev) => ({ ...prev, [`comment_${bundle.id}`]: '' }));
                         alert("Comment posted!");

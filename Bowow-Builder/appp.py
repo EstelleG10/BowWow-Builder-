@@ -5,11 +5,11 @@ from flask_bcrypt import Bcrypt
 import jwt
 import os
 from datetime import timedelta, datetime, timezone
-from constants import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, INVALID_SALT
+## from constants import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, INVALID_SALT
 
 print("I am in the right file ")
 app = Flask(__name__)
-app.config['key'] = 'value'
+app.config['SECRET_KEY'] = 'super-secret-key-change-this-more-secret-later'
 CORS(app)
 bcrypt = Bcrypt(app)
 
@@ -17,12 +17,29 @@ bcrypt = Bcrypt(app)
 # Database connection
 def get_db_connection():
     return psycopg2.connect(
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        host=DB_HOST,
-        port=DB_PORT
+        dbname="itemsdb",
+        user="estellegerber",
+        password="",
+        host= "localhost",
+        port= "5432"
     )
+
+def get_current_user_id():
+    auth = request.headers.get("Authorization", "")
+    print("Authorization header received:", repr(auth))  # new debugging line
+    if not auth.startswith("Bearer "):
+        print("Token not found or malformed")
+        return None
+    token = auth.replace("Bearer ", "")
+    try:
+        decoded = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        print("Decoded token:", decoded)  # debugging line lol
+        return decoded.get("user_id")
+    except jwt.InvalidTokenError as e:
+        print("Invalid token:", e)
+        return None
+
+
 
 # Serve images from /assets
 @app.route('/assets/<path:filename>')
@@ -133,7 +150,10 @@ def get_meals():
 @app.route("/api/ratings", methods=["POST"])
 def post_rating():
     data = request.get_json()
-    user_id = data["user_id"]
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
     meal_id = data["meal_id"]
     rating = data["rating"]
 
@@ -157,7 +177,10 @@ def post_rating():
 @app.route("/api/comments", methods=["POST"])
 def post_comment():
     data = request.get_json()
-    user_id = data["user_id"]
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
     meal_id = data["meal_id"]
     text = data["text"]
 
@@ -220,13 +243,14 @@ def delete_comment(comment_id):
 @app.route("/api/meals", methods=["POST"])
 def create_meal():
     print("here in POST meals")
-    print(token)
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
 
     data = request.get_json()
-    decoded_data = jwt.decode(token, app.config['key'], algorithms=["HS256"])
+    meal_name = data.get("name")
+    item_ids = data.get("items", [])
 
-    user_id = decoded_data.get("user_id")
-    user_id = data.get("user_id")
     meal_name = data.get("name")
     item_ids = data.get("items", [])
 
@@ -267,18 +291,24 @@ def create_meal():
 
 @app.route("/api/profile", methods=["GET"])
 def get_profile():
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
     conn = get_db_connection()
     cur  = conn.cursor()
 
-    # total the number of meals that that user made
-    cur.execute("SELECT COUNT(*) FROM meals;")
+    cur.execute("SELECT COUNT(*) FROM meals WHERE user_id = %s;", (user_id,))
     bundle_count = cur.fetchone()[0] or 0
 
-    # average the ratings of those meals
-    cur.execute("SELECT COALESCE(AVG(rating), 0) FROM ratings;")
+    cur.execute("""
+        SELECT COALESCE(AVG(r.rating), 0)
+        FROM ratings r
+        JOIN meals m ON r.meal_id = m.id
+        WHERE m.user_id = %s;
+    """, (user_id,))
     avg_rating = float(cur.fetchone()[0] or 0)
 
-    # gather all the
     cur.execute("""
         SELECT
           m.id,
@@ -288,9 +318,10 @@ def get_profile():
         FROM meals AS m
         LEFT JOIN meal_items AS mi ON mi.meal_id = m.id
         LEFT JOIN items      AS i  ON i.id      = mi.item_id
-       GROUP BY m.id, m.name, m.created_at
-       ORDER BY m.created_at DESC;
-    """)
+        WHERE m.user_id = %s
+        GROUP BY m.id, m.name, m.created_at
+        ORDER BY m.created_at DESC;
+    """, (user_id,))
     rows = cur.fetchall()
 
     bundles = [
@@ -306,114 +337,113 @@ def get_profile():
     cur.close()
     conn.close()
 
-    # Return empty username/email so frontend doesn't break
     return jsonify({
-      "username":    "",
-      "email":       "",
+      "username":    "",  # FIX LATER ESTELLE
+      "email":       "",  # FIX LATER ESTELLE
       "bundleCount": bundle_count,
       "avgRating":   round(avg_rating, 1),
       "bundles":     bundles
     })
 
-# @app.route("/api/profile", methods=["GET"])
-# def get_profile():
-#     # 1) Grab & validate the Bearer token
-#     auth = request.headers.get("Authorization", "")
-#     parts = auth.split()
-#     if len(parts) != 2 or parts[0] != "Bearer":
-#         return jsonify({"error": "Missing or invalid Authorization header"}), 401
-#     token = parts[1]
 
-#     # 2) Decode JWT safely
-#     try:
-#         decoded = jwt.decode(token, app.config["key"], algorithms=["HS256"])
-#     except DecodeError:
-#         return jsonify({"error": "Invalid token"}), 401
+@app.route("/api/my-meals", methods=["GET"])
+def get_my_meals():
+    print("here in get my meals")
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
 
-#     user_id = decoded.get("user_id")
-#     if not user_id:
-#         return jsonify({"error": "Invalid token payload"}), 401
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-#     # 3) Open DB connection
-#     conn = get_db_connection()
-#     cur  = conn.cursor()
+    # Get username and email
+    cur.execute("SELECT username, email FROM users WHERE id = %s;", (user_id,))
+    user_row = cur.fetchone()
+    username = user_row[0] if user_row else ""
+    email = user_row[1] if user_row else ""
 
-#     # 4) Fetch username & email
-#         #     SELECT username, email
-#         #   FROM users
-#         #  WHERE id = %s
-#     cur.execute("""
-#         SELECT username, email
-#           FROM users
-#     """, (user_id,))
-#     row = cur.fetchone()
-#     username = row[0] if row else ""
-#     email    = row[1] if row else ""
+    # Get bundle count
+    cur.execute("SELECT COUNT(*) FROM meals WHERE user_id = %s;", (user_id,))
+    bundle_count = cur.fetchone()[0] or 0
 
-#         # SELECT COUNT(*) 
-#         #   FROM meals 
-#         #  WHERE user_id = %s
-#     # 5) Count bundles
-#     cur.execute("""
-#         SELECT COUNT(*) 
-#           FROM meals 
-#     """, (user_id,))
-#     bundle_count = cur.fetchone()[0] or 0
+    # Get avg rating
+    cur.execute("""
+        SELECT COALESCE(AVG(r.rating), 0)
+        FROM ratings r
+        JOIN meals m ON r.meal_id = m.id
+        WHERE m.user_id = %s;
+    """, (user_id,))
+    avg_rating = float(cur.fetchone()[0] or 0)
 
-#     # 6) Average rating across all of this users meals
-#         #     SELECT COALESCE(AVG(r.rating), 0)
-#         #   FROM ratings r
-#         #   JOIN meals   m ON r.meal_id = m.id
-#         #  WHERE m.user_id = %s
-#     cur.execute("""
-#         SELECT COALESCE(AVG(r.rating), 0)
-#           FROM ratings r
-#           JOIN meals   m ON r.meal_id = m.id
-#     """, (user_id,))
-#     avg_rating = float(cur.fetchone()[0] or 0)
+    # Get meals made by this user
+    cur.execute("""
+        SELECT m.id, m.name, i.name, i.price, i.img_route
+        FROM meals m
+        JOIN meal_items mi ON m.id = mi.meal_id
+        JOIN items i ON i.id = mi.item_id
+        WHERE m.user_id = %s
+        ORDER BY m.id;
+    """, (user_id,))
+    rows = cur.fetchall()
 
-#     # 7) Bundle history: id, name, timestamp, items array
-#     #         SELECT
-#     #       m.id,
-#     #       m.name,
-#     #       m.created_at,
-#     #       array_agg(i.name ORDER BY i.name) AS items
-#     #     FROM meals AS m
-#     #     LEFT JOIN meal_items AS mi ON mi.meal_id = m.id
-#     #     LEFT JOIN items      AS i  ON i.id      = mi.item_id
-#     #    WHERE m.user_id = %s
-#     #    GROUP BY m.id, m.name, m.created_at
-#     #    ORDER BY m.created_at DESC;
-#     cur.execute("""
-#         SELECT
-#           m.id,
-#           m.name,
-#           m.created_at,
-#           array_agg(i.name ORDER BY i.name) AS items
-#         FROM meals AS m
-#         LEFT JOIN meal_items AS mi ON mi.meal_id = m.id
-#         LEFT JOIN items      AS i  ON i.id      = mi.item_id
-#        GROUP BY m.id, m.name, m.created_at
-#        ORDER BY m.created_at DESC;
-#     """, (user_id,))
-#     bundles = [{
-#         "id":          r[0],
-#         "name":        r[1],
-#         "created_at":  r[2].isoformat(),
-#         "items":       r[3] or []
-#     } for r in cur.fetchall()]
+    # Get ratings (all)
+    cur.execute("""
+        SELECT meal_id, ROUND(AVG(rating), 1) as avg_rating
+        FROM ratings
+        GROUP BY meal_id;
+    """)
+    rating_rows = cur.fetchall()
+    ratings_dict = {row[0]: row[1] for row in rating_rows}
 
-#     cur.close()
-#     conn.close()
+    # Get comments (all)
+    cur.execute("""
+        SELECT c.id, c.meal_id, users.username, c.text, c.created_at
+        FROM comments c
+        JOIN users ON c.user_id = users.id
+        ORDER BY c.created_at DESC;
+    """)
+    comment_rows = cur.fetchall()
 
-#     # 8) Return the JSON your frontend needs
-#     return jsonify({
-#         "username":    username,
-#         "email":       email,
-#         "bundleCount": bundle_count,
-#         "avgRating":   round(avg_rating, 1),
-#         "bundles":     bundles
-#     })
+    comments_dict = {}
+    for comment_id, meal_id, username, text, created_at in comment_rows:
+        if meal_id not in comments_dict:
+            comments_dict[meal_id] = []
+        comments_dict[meal_id].append({
+            "id": comment_id,
+            "user": username,
+            "text": text,
+            "created_at": created_at.isoformat()
+        })
+
+    # Group meals together
+    meals = {}
+    for meal_id, meal_name, item_name, item_price, item_img in rows:
+        if meal_id not in meals:
+            meals[meal_id] = {
+                "id": meal_id,
+                "name": meal_name,
+                "avg_rating": ratings_dict.get(meal_id),
+                "comments": comments_dict.get(meal_id, []),
+                "items": []
+            }
+        meals[meal_id]["items"].append({
+            "name": item_name,
+            "price": float(item_price),
+            "img_route": item_img
+        })
+
+    cur.close()
+    conn.close()
+
+    # FINAL RESPONSE
+    return jsonify({
+        "username": username,
+        "email": email,
+        "bundleCount": bundle_count,
+        "avgRating": round(avg_rating, 1),
+        "bundles": list(meals.values())
+    })
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -430,12 +460,12 @@ def login():
         curr.execute("SELECT * FROM users WHERE username = %s;", (username,))
         exists_user = curr.fetchone()        
         # MAKE SURE TO CHECK THIS W UR LOCAL DB EVERYONE!!!!!
-        if exists_user and bcrypt.check_password_hash(exists_user[INVALID_SALT], password):
+        if exists_user and bcrypt.check_password_hash(exists_user[2], password):
             token = jwt.encode({
                 'user_id': exists_user[0],
                 'username': exists_user[1],
                 'exp': datetime.now(timezone.utc)  + timedelta(hours=3) 
-            }, app.config['key'], algorithm='HS256')
+            }, app.config['SECRET_KEY'], algorithm='HS256')
             return jsonify({"message": "Login successful!", "token": token}), 200
         else:
             return jsonify({"error": "Invalid username or password"}), 401

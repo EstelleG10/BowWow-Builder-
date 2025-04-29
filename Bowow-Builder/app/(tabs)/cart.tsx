@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { useCart } from '../cartcontext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Constants from '../../constants';
 
 
@@ -33,9 +34,14 @@ export default function CartScreen() {
     };
 
     try {
+      const token = await AsyncStorage.getItem('token');  // 🛠️ GET TOKEN FIRST
+
       const response = await fetch(Constants.IP_ADDRESS + 'api/meals', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${token}`,   // 🛠️ ADD TOKEN HERE
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(mealData),
       });
 
