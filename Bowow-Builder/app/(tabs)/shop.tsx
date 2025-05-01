@@ -1,11 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
-  StyleSheet, Text, View, Vibration, TouchableOpacity, ScrollView,
-  ImageBackground, TextInput, Image, Animated
-} from 'react-native';
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+  ImageBackground,
+  TextInput,
+  Image,
+  Animated,
+} from "react-native";
 
-import { useCart } from '../cartcontext';
-import * as Constants from '../../constants';
+import { useCart } from "../cartcontext";
+import * as Constants from "../../constants";
+import { router } from "expo-router";
 
 // type for each item
 type Item = {
@@ -19,19 +27,18 @@ type Item = {
 export default function Category() {
   const [foodItems, setFoodItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [minPrice, setMinPrice] = useState(''); 
-  const [maxPrice, setMaxPrice] = useState(''); 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const { cart, addToCart } = useCart();
-  const API_URL = Constants.IP_ADDRESS + 'items';
+  const API_URL = Constants.IP_ADDRESS + "items";
 
   const [showToast, setShowToast] = useState(false);
   const toastY = useRef(new Animated.Value(100)).current;
 
   const triggerToast = () => {
-    // Vibration.vibrate(30);
     setShowToast(true);
     Animated.sequence([
       Animated.timing(toastY, {
@@ -48,7 +55,7 @@ export default function Category() {
     ]).start(() => setShowToast(false));
   };
 
-  // fetch items from API 
+  // fetch items from API
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -57,7 +64,7 @@ export default function Category() {
         setFoodItems(data);
         setFilteredItems(data);
       } catch (error) {
-        console.error('Error fetching items:', error);
+        console.error("Error fetching items:", error);
       }
     };
     fetchItems();
@@ -86,33 +93,45 @@ export default function Category() {
       !selectedCategory || item.category === selectedCategory;
 
     const results = foodItems.filter(
-      item => matchesSearch(item) && matchesPrice(item) && matchesCategory(item)
+      (item) =>
+        matchesSearch(item) && matchesPrice(item) && matchesCategory(item)
     );
 
     setFilteredItems(results);
   };
 
   const calculateTotal = () =>
-    cart.reduce((total, item) => total + parseFloat(item.price as any), 0).toFixed(2);
+    cart
+      .reduce((total, item) => total + parseFloat(item.price as any), 0)
+      .toFixed(2);
 
   const allCategories = Array.from(
-    new Set(foodItems.map(item => item.category).filter(Boolean))
+    new Set(foodItems.map((item) => item.category).filter(Boolean))
   );
 
   return (
-    <ImageBackground source={require('../../assets/images/background_white.jpg')} style={styles.background}>
+    <ImageBackground
+      source={require("../../assets/images/background_white.jpg")}
+      style={styles.background}
+    >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
           <Text style={styles.header}>Shop</Text>
 
-          <View style={styles.cartIconWrapper}>
-            <Image source={require('../../assets/images/cart.png')} style={styles.cartIcon} />
+          <TouchableOpacity
+            style={styles.cartIconWrapper}
+            onPress={() => router.push("/cart")}
+          >
+            <Image
+              source={require("../../assets/images/cart.png")}
+              style={styles.cartIcon}
+            />
             {cart.length > 0 && (
               <View style={styles.cartBadge}>
                 <Text style={styles.badgeText}>{cart.length}</Text>
               </View>
             )}
-          </View>
+          </TouchableOpacity>
 
           <View style={styles.searchWrapper}>
             <TextInput
@@ -120,12 +139,16 @@ export default function Category() {
               placeholder="Search items..."
               placeholderTextColor="#888"
               value={searchTerm}
-              onChangeText={text => setSearchTerm(text)}
+              onChangeText={(text) => setSearchTerm(text)}
             />
           </View>
 
           {/* Horizontal category list */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoryScroll}
+          >
             {allCategories.map((cat, index) => (
               <TouchableOpacity
                 key={index}
@@ -134,7 +157,7 @@ export default function Category() {
                   selectedCategory === cat && styles.categorySelected,
                 ]}
                 onPress={() =>
-                  setSelectedCategory(prev => (prev === cat ? null : cat))
+                  setSelectedCategory((prev) => (prev === cat ? null : cat))
                 }
               >
                 <Text style={styles.categoryText}>{cat}</Text>
@@ -165,7 +188,9 @@ export default function Category() {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.totalPrice}>Total Price: ${calculateTotal()}</Text>
+          <Text style={styles.totalPrice}>
+            Total Price: ${calculateTotal()}
+          </Text>
           <Text style={styles.Click}>Click Items to Add to Cart!</Text>
 
           <View style={styles.grid}>
@@ -180,14 +205,22 @@ export default function Category() {
               >
                 {item.img_route && item.img_route.trim() ? (
                   <Image
-                    source={{ uri: `${Constants.IP_ADDRESS}/${encodeURI(item.img_route.trim())}` }}
+                    source={{
+                      uri: `${Constants.IP_ADDRESS}/${encodeURI(
+                        item.img_route.trim()
+                      )}`,
+                    }}
                     style={styles.itemImage}
-                    onError={() => console.warn(`Could not load image for ${item.name}`)}
+                    onError={() =>
+                      console.warn(`Could not load image for ${item.name}`)
+                    }
                   />
                 ) : (
                   <View style={styles.imagePlaceholder} />
                 )}
-                <Text style={styles.itemText} numberOfLines={2}>{item.name}</Text>
+                <Text style={styles.itemText} numberOfLines={2}>
+                  {item.name}
+                </Text>
                 <Text style={styles.itemText}>${item.price}</Text>
               </TouchableOpacity>
             ))}
@@ -196,7 +229,9 @@ export default function Category() {
       </ScrollView>
 
       {showToast && (
-        <Animated.View style={[styles.toast, { transform: [{ translateY: toastY }] }]}> 
+        <Animated.View
+          style={[styles.toast, { transform: [{ translateY: toastY }] }]}
+        >
           <Text style={styles.toastText}>Added to Cart!</Text>
         </Animated.View>
       )}
@@ -207,29 +242,29 @@ export default function Category() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
   scrollContainer: {
     flexGrow: 1,
-    alignItems: 'center',
+    alignItems: "center",
     paddingBottom: 80,
   },
   container: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 10,
   },
   header: {
     marginTop: 50,
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
-    color: 'black',
+    color: "black",
   },
   cartIconWrapper: {
-    position: 'absolute',
+    position: "absolute",
     top: 50,
     right: 20,
     zIndex: 10,
@@ -239,34 +274,34 @@ const styles = StyleSheet.create({
     height: 40,
   },
   cartBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: -6,
     right: -6,
-    backgroundColor: 'red',
+    backgroundColor: "red",
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   badgeText: {
-    color: 'white',
+    color: "white",
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   searchWrapper: {
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
     marginBottom: 10,
   },
   searchBar: {
-    width: 340,  
-    height: 40, 
+    width: 340,
+    height: 40,
     maxWidth: 500,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 12,
-    backgroundColor: 'white',
-    color: 'black',
+    backgroundColor: "white",
+    color: "black",
     fontSize: 16,
   },
   categoryScroll: {
@@ -274,7 +309,7 @@ const styles = StyleSheet.create({
     maxHeight: 40,
   },
   categoryButton: {
-    backgroundColor: '#ddd',
+    backgroundColor: "#ddd",
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 20,
@@ -283,98 +318,98 @@ const styles = StyleSheet.create({
   Click: {
     fontSize: 15,
     marginBottom: 10,
-    color: 'black',
-    textAlign: 'left',
-    fontStyle: 'italic',
+    color: "black",
+    textAlign: "left",
+    fontStyle: "italic",
   },
   categorySelected: {
-    backgroundColor: '#007aff',
+    backgroundColor: "#007aff",
   },
   categoryText: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: 'black',
+    fontWeight: "bold",
+    color: "black",
   },
   priceFilterBox: {
-    width: '100%',
+    width: "100%",
     maxWidth: 500,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 15,
   },
   priceInput: {
-    width: 120,  
-    height: 40,  
-    borderColor: '#ccc',
+    width: 120,
+    height: 40,
+    borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 12,
-    backgroundColor: 'white',
-    color: 'black',
+    backgroundColor: "white",
+    color: "black",
     fontSize: 16,
     marginBottom: 10,
   },
   filterButton: {
-    backgroundColor: '#1c37b0',
+    backgroundColor: "#1c37b0",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
     marginBottom: 10,
   },
   buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
     fontSize: 16,
   },
   totalPrice: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
-    color: 'black',
+    color: "black",
   },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
   itemBox: {
-    alignItems: 'center',
+    alignItems: "center",
     margin: 10,
     width: 150,
   },
   imagePlaceholder: {
     width: 155,
     height: 155,
-    backgroundColor: '#ddd',
+    backgroundColor: "#ddd",
     borderRadius: 10,
     marginBottom: 5,
   },
   itemText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: 'black',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "black",
+    textAlign: "center",
   },
   itemImage: {
     width: 155,
     height: 155,
     borderRadius: 10,
     marginBottom: 5,
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
   toast: {
-    position: 'absolute',
+    position: "absolute",
     width: 150,
     height: 50,
     bottom: 20,
-    alignSelf: 'center',
-    backgroundColor: '#1c37b0',
+    alignSelf: "center",
+    backgroundColor: "#1c37b0",
     padding: 15,
     borderRadius: 8,
     zIndex: 20,
   },
   toastText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: 'bold',
+    color: "white",
+    textAlign: "center",
+    fontWeight: "bold",
   },
 });
