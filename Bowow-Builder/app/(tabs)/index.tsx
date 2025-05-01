@@ -10,10 +10,12 @@ import {
   StatusBar,
   Dimensions,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
   Alert,
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Constants from '../../constants';
@@ -38,6 +40,8 @@ const Home = () => {
   const [comments, setComments] = useState<{ [mealId: number]: any[] }>({});
   const [showNoBundlesMessage, setShowNoBundlesMessage] = useState(false);
   const [username, setUsername] = useState('');
+  const navigation = useNavigation();
+
 
   const fetchUsername = async () => {
     const token = await AsyncStorage.getItem("token");
@@ -140,7 +144,12 @@ const Home = () => {
     <ImageBackground source={require('../../assets/images/dark_blue.jpg')} style={styles.background}>
       <SafeAreaProvider>
         <SafeAreaView style={styles.container} edges={['top']}>
-          <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 5 : 0}
+          >
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
             <View style={styles.textBox}>
               <Text style={styles.header}>Bow Wow Builder</Text>
               <Text style={styles.textHeader}>The Wows of the Week</Text>
@@ -261,7 +270,8 @@ const Home = () => {
                 </View>
               </View>
             ))}
-          </ScrollView>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </SafeAreaProvider>
     </ImageBackground>

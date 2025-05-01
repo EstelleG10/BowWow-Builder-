@@ -159,6 +159,7 @@ export default function CartScreen() {
               <Text style={styles.clearButtonText}>Clear Cart</Text>
             </TouchableOpacity>
           )}
+
         </ScrollView>
 
         {showToast && (
@@ -207,13 +208,13 @@ container: {
 },
   underText: {
     color: "lightgreen",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
   },
   overText: {
-    color: "salmon",
-    fontSize: 16,
+    color: "red",
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
   },
@@ -251,6 +252,7 @@ container: {
     padding: 12,
     borderRadius: 10,
     marginTop: 10,
+    marginBottom: 20,
     width: "100%",
     alignItems: "center",
   },

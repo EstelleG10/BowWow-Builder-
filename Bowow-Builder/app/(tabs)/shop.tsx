@@ -44,10 +44,12 @@ export default function Category() {
         duration: 300,
         useNativeDriver: true,
       }),
-    ]).start(() => setShowToast(false));
+      ]).start(() => {
+    requestAnimationFrame(() => setShowToast(false));
+  });
+
   };
 
-  // fetch items from API
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -62,7 +64,6 @@ export default function Category() {
     fetchItems();
   }, []);
 
-  // filter items w state changes
   useEffect(() => {
     filterItems();
   }, [searchTerm, minPrice, maxPrice, selectedCategory, foodItems]);
@@ -97,6 +98,11 @@ export default function Category() {
       .reduce((total, item) => total + parseFloat(item.price as any), 0)
       .toFixed(2);
 
+  const total = parseFloat(calculateTotal());
+  const amountLeftOrOver =
+    total > 12 ? (total - 12).toFixed(2) : (12 - total).toFixed(2);
+  const isOver = total > 12;
+
   const allCategories = Array.from(
     new Set(foodItems.map((item) => item.category).filter(Boolean))
   );
@@ -106,19 +112,38 @@ export default function Category() {
       source={require("../../assets/images/background_white.jpg")}
       style={styles.background}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      {/* Fixed Header */}
+      <View style={styles.fixedHeader}>
+        <Text style={styles.header}>Shop</Text>
+
+        <TouchableOpacity
+          style={styles.cartIconWrapper}
+          onPress={() => router.push("/cart")}
+        >
+          <Image
+            source={require("../../assets/images/cart.png")}
+            style={styles.cartIcon}
+          />
+          {cart.length > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.badgeText}>{cart.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        <View style={styles.totalRow}>
+          <Text style={styles.totalPricePinned}>Total: ${total.toFixed(2)}</Text>
+          <Text style={isOver ? styles.overTextPinned : styles.underTextPinned}>
+            {isOver ? `Over: $${amountLeftOrOver}` : `Left: $${amountLeftOrOver}`}
+          </Text>
+        </View>
+      </View>
+
+      {/* Scrollable Content */}
+      <ScrollView
+        contentContainerStyle={[styles.scrollContainer, { paddingTop: 120 }]}
+      >
         <View style={styles.container}>
-          <Text style={styles.header}>Shop</Text>
-
-      <TouchableOpacity style={styles.cartIconWrapper} onPress={() => router.push('/cart')}>
-        <Image source={require('../../assets/images/cart.png')} style={styles.cartIcon} />
-        {cart.length > 0 && (
-          <View style={styles.cartBadge}>
-            <Text style={styles.badgeText}>{cart.length}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-
           <View style={styles.searchWrapper}>
             <TextInput
               style={styles.searchBar}
@@ -129,7 +154,6 @@ export default function Category() {
             />
           </View>
 
-          {/* Horizontal category list */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -151,7 +175,6 @@ export default function Category() {
             ))}
           </ScrollView>
 
-          {/* Min and Max Price inputs */}
           <View style={styles.priceFilterBox}>
             <TextInput
               style={styles.priceInput}
@@ -174,9 +197,6 @@ export default function Category() {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.totalPrice}>
-            Total Price: ${calculateTotal()}
-          </Text>
           <Text style={styles.Click}>Click Items to Add to Cart!</Text>
 
           <View style={styles.grid}>
@@ -204,8 +224,12 @@ export default function Category() {
                 ) : (
                   <View style={styles.imagePlaceholder} />
                 )}
-                <Text style={styles.itemText} numberOfLines={2}>{item.name}</Text>
-                <Text style={styles.itemText}>${parseFloat(item.price as any).toFixed(2)}</Text>
+                <Text style={styles.itemText} numberOfLines={2}>
+                  {item.name}
+                </Text>
+                <Text style={styles.itemText}>
+                  ${parseFloat(item.price as any).toFixed(2)}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -271,6 +295,44 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
   },
+  fixedHeader: {
+  position: "absolute",
+  top: 0,
+  width: "100%",
+  backgroundColor: 'rgba(255, 255, 255, 0.90)',
+  paddingBottom: 10,
+  paddingHorizontal: 20,
+  zIndex: 10,
+  borderBottomColor: "#ccc",
+  borderBottomWidth: 1,
+  alignItems: "center",
+},
+totalPricePinned: {
+  fontSize: 18,
+  fontWeight: "bold",
+  color: "black",
+  marginTop: -5,
+  },
+underTextPinned: {
+  color: "green",
+  fontSize: 18,
+  fontWeight: "bold",
+  marginTop: -5,
+},
+
+overTextPinned: {
+  color: "red",
+  fontSize: 18,
+  fontWeight: "bold",
+  marginTop: -5,
+  },
+totalRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 10, // for newer React Native versions
+  marginTop: -15,
+},
   searchWrapper: {
     width: "100%",
     alignItems: "center",
@@ -300,11 +362,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   Click: {
-    fontSize: 15,
-    marginBottom: 10,
+    fontSize: 20,
     color: "black",
     textAlign: "left",
     fontStyle: "italic",
+    fontWeight: 'bold'
   },
   categorySelected: {
     backgroundColor: "#007aff",

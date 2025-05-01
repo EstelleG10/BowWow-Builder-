@@ -1,8 +1,7 @@
 DB_NAME = "itemsdb"
-DB_USER = "postgres"
-DB_PASSWORD = ""
-DB_HOST = "localhost"
+DB_USER = "estellegerber"
+DB_PASSWORD = "megu$taDatab$$3s"
+DB_HOST = "bowwow-db.cneo2g2w2qei.us-east-2.rds.amazonaws.com"
 DB_PORT = "5432"
-INVALID_SALT = 3
 
 # host="bowwow-db.cneo2g2w2qei.us-east-2.rds.amazonaws.com"
