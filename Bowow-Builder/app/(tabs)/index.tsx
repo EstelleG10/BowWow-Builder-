@@ -13,8 +13,28 @@ import {
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Constants from '../../constants';
+
+const StarRating = ({ rating, onChange }) => (
+  <View style={{ flexDirection: "row" }}>
+    {[1, 2, 3, 4, 5].map((n) => (
+      <Pressable
+        key={n}
+        onPress={() => onChange(n)}
+        style={{ marginHorizontal: 2 }}
+      >
+        <FontAwesome
+          name={n <= rating ? "star" : "star-o"}
+          size={24}
+          color="#FFD700"
+        />
+      </Pressable>
+    ))}
+  </View>
+);
+
 
 const Home = () => {
   const [bundles, setBundles] = useState<any[]>([]);
@@ -133,11 +153,11 @@ const Home = () => {
             <View style={styles.textBox}>
               <Text style={styles.header}>Bow Wow Builder</Text>
               <Text style={styles.textHeader}>The Wows of the Week</Text>
-      {showNoBundlesMessage && (
-              <Text style={styles.noBundlesMessage}>
-                You haven’t created any bundles yet! Build your first one!
-              </Text>
-            )}
+              {showNoBundlesMessage && (
+                <Text style={styles.noBundlesMessage}>
+                  You haven’t created any bundles yet! Build your first one!
+                </Text>
+              )}
             </View>
 
             {displayBundles.map((bundle, idx) => (
@@ -146,26 +166,17 @@ const Home = () => {
                 <Text style={styles.posterText}>Posted by: {bundle.poster}</Text>
                 {bundle.avg_rating !== undefined && (
                   <Text style={styles.ratingDisplay}>
-                    Average Rating: {bundle.avg_rating} ⭐
+                    Average Rating: {bundle.avg_rating} 
                   </Text>
                 )}
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <TextInput
-                    style={styles.ratingInput}
-                    placeholder="Rate 1–5"
-                    placeholderTextColor="#888"
-                    keyboardType="numeric"
-                    maxLength={1}
-                    value={ratings[bundle.id] || ''}
-                    onChangeText={(text) => {
-                      if (!text || /^[1-5]$/.test(text)) {
-                        setRatings((prev) => ({
-                          ...prev,
-                          [bundle.id]: text,
-                        }));
-                      }
-                    }}
+                  <StarRating
+                    rating={parseInt(ratings[bundle.id]) || 0}
+                    onChange={(val) =>
+                      setRatings((prev) => ({ ...prev, [bundle.id]: String(val) }))
+                    }
                   />
+
                   <Pressable
                     style={styles.submitButton}
                     onPress={() => {
@@ -406,12 +417,12 @@ const styles = StyleSheet.create({
   },
 
   noBundlesMessage: {
-  textAlign: 'center',
-  fontSize: 16,
-  color: 'white',
-  paddingTop: 10,
-  fontStyle: 'italic',
-},
+    textAlign: 'center',
+    fontSize: 16,
+    color: 'white',
+    paddingTop: 10,
+    fontStyle: 'italic',
+  },
 
   posterText: {
     fontSize: 14,
