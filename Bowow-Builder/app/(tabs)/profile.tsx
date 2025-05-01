@@ -71,8 +71,8 @@ export default function Profile() {
             <View style={styles.accountCard}>
               <Text style={styles.accountHeader}>Account</Text>
               <View style={styles.accountInfo}>
-                <Text style={styles.accountText}>Username: User {username}</Text>
-                <Text style={styles.accountText}>Email: User@gmail.com {email}</Text>
+                <Text style={styles.accountText}>Username: {username}</Text>
+                <Text style={styles.accountText}>Email: {email}</Text>
               </View>
             </View>
 

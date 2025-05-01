@@ -78,7 +78,7 @@ const Home = () => {
         alert("You already rated this meal!");
       } else if (res.ok) {
         alert("Thanks for rating!");
-        await fetchBundles(); // ✅ Refresh bundles
+        await fetchBundles(); // Refresh bundles
       } else {
         alert("Something went wrong!");
       }
@@ -297,7 +297,7 @@ const Home = () => {
   );
 };
 
-// make sure the width matches user computer 
+// make sure the width matches user phone
 const screenWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({

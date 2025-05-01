@@ -5,8 +5,8 @@ from constants import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
  # Connect to local PostgreSQL
 conn = psycopg.connect(
     dbname="itemsdb",
-    user="postgres",
-    password="1235",
+    user="estellegerber",
+    password="",
     host= "localhost",
     port= "5432"
 )
@@ -162,7 +162,7 @@ for row in cur.fetchall():
 
 # link items to categories from catitems1.csv
 print("Linking items to categories")
-with open("catitems1.csv", newline='', encoding='utf-8') as file:
+with open("catitems.csv", newline='', encoding='utf-8') as file:
     reader = csv.DictReader(file)
     for row in reader:
         try:

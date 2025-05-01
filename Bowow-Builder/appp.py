@@ -18,8 +18,8 @@ bcrypt = Bcrypt(app)
 def get_db_connection():
     return psycopg2.connect(
         dbname="itemsdb",
-        user="postgres",
-        password="1235",
+        user="estellegerber",
+        password="",
         host= "localhost",
         port= "5432"
     )
@@ -161,7 +161,7 @@ def post_rating():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # 🛑 Check if the user already rated this meal
+    #  Check if the user already rated this meal
     cur.execute(
         "SELECT id FROM ratings WHERE user_id = %s AND meal_id = %s;",
         (user_id, meal_id)
@@ -174,7 +174,7 @@ def post_rating():
         conn.close()
         return jsonify({"error": "You have already rated this meal!"}), 400
 
-    # ✅ Otherwise, insert the new rating
+    #  Otherwise, insert the new rating
     cur.execute(
         "INSERT INTO ratings (user_id, meal_id, rating) VALUES (%s, %s, %s);",
         (user_id, meal_id, rating)
@@ -237,8 +237,26 @@ def get_comments(meal_id):
 # Delete a comment by ID
 @app.route("/api/comments/<int:comment_id>", methods=["DELETE"])
 def delete_comment(comment_id):
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
     conn = get_db_connection()
     cur = conn.cursor()
+
+    # Make sure the comment belongs to the requesting user
+    cur.execute("SELECT user_id FROM comments WHERE id = %s;", (comment_id,))
+    row = cur.fetchone()
+
+    if not row:
+        cur.close()
+        conn.close()
+        return jsonify({"error": "Comment not found"}), 404
+
+    if row[0] != user_id:
+        cur.close()
+        conn.close()
+        return jsonify({"error": "You can only delete your own comments"}), 403
 
     try:
         cur.execute("DELETE FROM comments WHERE id = %s;", (comment_id,))
