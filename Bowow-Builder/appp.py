@@ -78,18 +78,17 @@ def get_items():
         }
         for row in rows
     ])
-
-# Get meals (has avg_rating, comments, and img_route for each item)
 @app.route("/api/meals", methods=["GET"])
 def get_meals():
     print("here in get meals")
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # Get meal + item info
+    # Get meal + item info INCLUDING poster's username
     cur.execute("""
-        SELECT m.id, m.name, i.name, i.price, i.img_route
+        SELECT m.id, m.name, u.username, i.name, i.price, i.img_route
         FROM meals m
+        JOIN users u ON m.user_id = u.id
         JOIN meal_items mi ON m.id = mi.meal_id
         JOIN items i ON i.id = mi.item_id
         ORDER BY m.id;
@@ -105,7 +104,7 @@ def get_meals():
     rating_rows = cur.fetchall()
     ratings_dict = {row[0]: row[1] for row in rating_rows}
 
-    # Get comments (now with comment ID for deleting of commentes)
+    # Get comments
     cur.execute("""
         SELECT c.id, c.meal_id, users.username, c.text, c.created_at
         FROM comments c
@@ -116,6 +115,7 @@ def get_meals():
     cur.close()
     conn.close()
 
+    # Organize comments
     comments_dict = {}
     for comment_id, meal_id, username, text, created_at in comment_rows:
         if meal_id not in comments_dict:
@@ -127,13 +127,14 @@ def get_meals():
             "created_at": created_at.isoformat()
         })
 
-    # Build final meals response
+    # Build final meal response
     meals = {}
-    for meal_id, meal_name, item_name, item_price, item_img in rows:
+    for meal_id, meal_name, poster_username, item_name, item_price, item_img in rows:
         if meal_id not in meals:
             meals[meal_id] = {
                 "id": meal_id,
                 "name": meal_name,
+                "poster": poster_username,
                 "avg_rating": ratings_dict.get(meal_id),
                 "comments": comments_dict.get(meal_id, []),
                 "items": []
@@ -145,6 +146,7 @@ def get_meals():
         })
 
     return jsonify(list(meals.values()))
+
 @app.route("/api/ratings", methods=["POST"])
 def post_rating():
     data = request.get_json()
@@ -237,26 +239,8 @@ def get_comments(meal_id):
 # Delete a comment by ID
 @app.route("/api/comments/<int:comment_id>", methods=["DELETE"])
 def delete_comment(comment_id):
-    user_id = get_current_user_id()
-    if not user_id:
-        return jsonify({"error": "Unauthorized"}), 401
-
     conn = get_db_connection()
     cur = conn.cursor()
-
-    # Make sure the comment belongs to the requesting user
-    cur.execute("SELECT user_id FROM comments WHERE id = %s;", (comment_id,))
-    row = cur.fetchone()
-
-    if not row:
-        cur.close()
-        conn.close()
-        return jsonify({"error": "Comment not found"}), 404
-
-    if row[0] != user_id:
-        cur.close()
-        conn.close()
-        return jsonify({"error": "You can only delete your own comments"}), 403
 
     try:
         cur.execute("DELETE FROM comments WHERE id = %s;", (comment_id,))

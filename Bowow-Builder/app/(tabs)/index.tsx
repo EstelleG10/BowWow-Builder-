@@ -160,6 +160,7 @@ const Home = () => {
             {displayBundles.map((bundle, idx) => (
               <View key={idx} style={styles.bundleBox}>
                 <Text style={styles.bundleTitle}>{bundle.title || bundle.name}</Text>
+                <Text style={styles.posterText}>Posted by: {bundle.poster}</Text>
                 {bundle.avg_rating !== undefined && (
                   <Text style={styles.ratingDisplay}>
                     Average Rating: {bundle.avg_rating} ⭐
@@ -428,6 +429,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20,
     paddingHorizontal: 20,
+  },
+
+  posterText: {
+    fontSize: 14,
+    color: '#ccc',
+    marginBottom: 4,
+    fontStyle: 'italic',
   },
 
   commentInput: {
