@@ -5,21 +5,22 @@ from flask_bcrypt import Bcrypt
 import jwt
 import os
 from datetime import timedelta, datetime, timezone
+from typing import Dict, List
 ## from constants import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, INVALID_SALT
 
-print("I am in the right file ")
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super-secret-key-change-this-more-secret-later'
 CORS(app)
 bcrypt = Bcrypt(app)
 
+# =============================== DATABASE ===============================
 
 # Database connection
 def get_db_connection():
     return psycopg2.connect(
         dbname="itemsdb",
-        user="postgres",
-        password="",
+        user="lesli",
+        password="1234",
         host= "localhost",
         port= "5432"
     )
@@ -39,6 +40,7 @@ def get_current_user_id():
         print("Invalid token:", e)
         return None
 
+# =============================== IMAGES ===============================
 
 
 # Serve images from /assets
@@ -46,11 +48,7 @@ def get_current_user_id():
 def serve_assets(filename):
     return send_from_directory('assets', filename)
 
-# @app.route('/assets/<path:filename>')
-# def serve_image(filename):
-#     root_dir = os.path.join(os.path.dirname(__file__), 'assets')
-#     return send_from_directory(root_dir, filename)
-
+# =============================== ITEMS ===============================
 
 # Get items (now includes img_route!)
 @app.route("/items", methods=["GET"])
@@ -78,6 +76,9 @@ def get_items():
         }
         for row in rows
     ])
+
+# =============================== HOMEPAGE MEALS, COMMENTS, RATINGS ===============================
+
 @app.route("/api/meals", methods=["GET"])
 def get_meals():
     print("here in get meals")
@@ -86,7 +87,7 @@ def get_meals():
 
     # Get meal + item info INCLUDING poster's username
     cur.execute("""
-        SELECT m.id, m.name, u.username, i.name, i.price, i.img_route
+        SELECT m.id, m.name, m.created_at, u.username, i.name, i.price, i.img_route
         FROM meals m
         JOIN users u ON m.user_id = u.id
         JOIN meal_items mi ON m.id = mi.meal_id
@@ -129,12 +130,13 @@ def get_meals():
 
     # Build final meal response
     meals = {}
-    for meal_id, meal_name, poster_username, item_name, item_price, item_img in rows:
+    for meal_id, meal_name, created_at, poster_username, item_name, item_price, item_img in rows:
         if meal_id not in meals:
             meals[meal_id] = {
                 "id": meal_id,
                 "name": meal_name,
                 "poster": poster_username,
+                "created_at": int(created_at.timestamp() * 1000),
                 "avg_rating": ratings_dict.get(meal_id),
                 "comments": comments_dict.get(meal_id, []),
                 "items": []
@@ -147,6 +149,7 @@ def get_meals():
 
     return jsonify(list(meals.values()))
 
+# get the rating of the meal
 @app.route("/api/ratings", methods=["POST"])
 def post_rating():
     data = request.get_json()
@@ -254,6 +257,8 @@ def delete_comment(comment_id):
         cur.close()
         conn.close()
 
+# =============================== CART ===============================
+
 # Create a new meal
 @app.route("/api/meals", methods=["POST"])
 def create_meal():
@@ -281,10 +286,10 @@ def create_meal():
         total_price = cur.fetchone()[0] or 0
 
         cur.execute(
-            "INSERT INTO meals (name, user_id, total_price) VALUES (%s, %s, %s) RETURNING id;",
+            "INSERT INTO meals (name, user_id, total_price) VALUES (%s, %s, %s) RETURNING id, created_at;",
             (meal_name, user_id, total_price)
         )
-        meal_id = cur.fetchone()[0]
+        meal_id, created_at = cur.fetchone()  
 
         for item_id in item_ids:
             cur.execute(
@@ -293,7 +298,7 @@ def create_meal():
             )
 
         conn.commit()
-        return jsonify({"message": "Meal created", "meal_id": meal_id}), 201
+        return jsonify({"message": "Meal created", "meal_id": meal_id, "created_at": created_at.isoformat(timespec='minutes')}), 201
 
     except Exception as e:
         conn.rollback()
@@ -304,6 +309,7 @@ def create_meal():
         cur.close()
         conn.close()
 
+# =============================== PROFILE ===============================
 @app.route("/api/profile", methods=["GET"])
 def get_profile():
     user_id = get_current_user_id()
@@ -311,154 +317,77 @@ def get_profile():
         return jsonify({"error": "Unauthorized"}), 401
 
     conn = get_db_connection()
-    cur  = conn.cursor()
-
-    cur.execute("SELECT COUNT(*) FROM meals WHERE user_id = %s;", (user_id,))
-    bundle_count = cur.fetchone()[0] or 0
-
-    cur.execute("""
-        SELECT COALESCE(AVG(r.rating), 0)
-        FROM ratings r
-        JOIN meals m ON r.meal_id = m.id
-        WHERE m.user_id = %s;
-    """, (user_id,))
-    avg_rating = float(cur.fetchone()[0] or 0)
-
-    cur.execute("""
-        SELECT
-          m.id,
-          m.name,
-          m.created_at,
-          array_agg(i.name ORDER BY i.name) AS items
-        FROM meals AS m
-        LEFT JOIN meal_items AS mi ON mi.meal_id = m.id
-        LEFT JOIN items      AS i  ON i.id      = mi.item_id
-        WHERE m.user_id = %s
-        GROUP BY m.id, m.name, m.created_at
-        ORDER BY m.created_at DESC;
-    """, (user_id,))
-    rows = cur.fetchall()
-
-    bundles = [
-      {
-        "id":          r[0],
-        "name":        r[1],
-        "created_at":  r[2].isoformat(),
-        "items":       r[3] or []
-      }
-      for r in rows
-    ]
-
-    cur.close()
-    conn.close()
-
-    return jsonify({
-      "username":    "",  # FIX LATER ESTELLE
-      "email":       "",  # FIX LATER ESTELLE
-      "bundleCount": bundle_count,
-      "avgRating":   round(avg_rating, 1),
-      "bundles":     bundles
-    })
-
-
-@app.route("/api/my-meals", methods=["GET"])
-def get_my_meals():
-    print("here in get my meals")
-    user_id = get_current_user_id()
-    if not user_id:
-        return jsonify({"error": "Unauthorized"}), 401
-
-    conn = get_db_connection()
     cur = conn.cursor()
 
-    # Get username and email
-    cur.execute("SELECT username, email FROM users WHERE id = %s;", (user_id,))
-    user_row = cur.fetchone()
-    username = user_row[0] if user_row else ""
-    email = user_row[1] if user_row else ""
-
-    # Get bundle count
-    cur.execute("SELECT COUNT(*) FROM meals WHERE user_id = %s;", (user_id,))
-    bundle_count = cur.fetchone()[0] or 0
-
-    # Get avg rating
+    # Fetch basic user info + stats
     cur.execute("""
-        SELECT COALESCE(AVG(r.rating), 0)
-        FROM ratings r
-        JOIN meals m ON r.meal_id = m.id
-        WHERE m.user_id = %s;
+        SELECT u.username,
+               u.email,
+               COUNT(m.id)           AS bundle_count,
+               COALESCE(AVG(r.rating), 0) AS avg_rating
+        FROM users u
+        LEFT JOIN meals m   ON m.user_id = u.id
+        LEFT JOIN ratings r ON r.meal_id = m.id
+        WHERE u.id = %s
+        GROUP BY u.username, u.email;
     """, (user_id,))
-    avg_rating = float(cur.fetchone()[0] or 0)
+    row = cur.fetchone()
+    if not row:
+        cur.close()
+        conn.close()
+        return jsonify({"error": "User not found"}), 404
 
-    # Get meals made by this user
+    username, email, bundle_count, avg_rating = row
+
+    # Fetch each meal’s header info
     cur.execute("""
-        SELECT m.id, m.name, i.name, i.price, i.img_route
-        FROM meals m
-        JOIN meal_items mi ON m.id = mi.meal_id
+        SELECT id,
+               name,
+               EXTRACT(EPOCH FROM date_trunc('minute', created_at)) * 1000 AS ts_ms
+        FROM meals
+        WHERE user_id = %s
+        ORDER BY created_at DESC;
+    """, (user_id,))
+    meals_meta = cur.fetchall()   # list of (meal_id, name, ts_ms)
+
+    # Fetch all items, keyed by meal_id
+    cur.execute("""
+        SELECT mi.meal_id,
+               i.name
+        FROM meal_items mi
         JOIN items i ON i.id = mi.item_id
-        WHERE m.user_id = %s
-        ORDER BY m.id;
-    """, (user_id,))
-    rows = cur.fetchall()
-
-    # Get ratings (all)
-    cur.execute("""
-        SELECT meal_id, ROUND(AVG(rating), 1) as avg_rating
-        FROM ratings
-        GROUP BY meal_id;
-    """)
-    rating_rows = cur.fetchall()
-    ratings_dict = {row[0]: row[1] for row in rating_rows}
-
-    # Get comments (all)
-    cur.execute("""
-        SELECT c.id, c.meal_id, users.username, c.text, c.created_at
-        FROM comments c
-        JOIN users ON c.user_id = users.id
-        ORDER BY c.created_at DESC;
-    """)
-    comment_rows = cur.fetchall()
-
-    comments_dict = {}
-    for comment_id, meal_id, username, text, created_at in comment_rows:
-        if meal_id not in comments_dict:
-            comments_dict[meal_id] = []
-        comments_dict[meal_id].append({
-            "id": comment_id,
-            "user": username,
-            "text": text,
-            "created_at": created_at.isoformat()
-        })
-
-    # Group meals together
-    meals = {}
-    for meal_id, meal_name, item_name, item_price, item_img in rows:
-        if meal_id not in meals:
-            meals[meal_id] = {
-                "id": meal_id,
-                "name": meal_name,
-                "avg_rating": ratings_dict.get(meal_id),
-                "comments": comments_dict.get(meal_id, []),
-                "items": []
-            }
-        meals[meal_id]["items"].append({
-            "name": item_name,
-            "price": float(item_price),
-            "img_route": item_img
-        })
+        WHERE mi.meal_id = ANY(%s)
+        ORDER BY i.name;
+    """, ([m[0] for m in meals_meta],))
+    items_rows = cur.fetchall()   # list of (meal_id, item_name)
 
     cur.close()
     conn.close()
 
-    # FINAL RESPONSE
+    # Assemble bundles in Python
+    bundles = []
+    # build a dict of meal_id and list of item names
+    items_map: Dict[int, List[str]] = {}
+    for meal_id, item_name in items_rows:
+        items_map.setdefault(meal_id, []).append(item_name)
+
+    for meal_id, name, ts_ms in meals_meta:
+        bundles.append({
+            "id":          meal_id,
+            "name":        name,
+            "created_at":  int(ts_ms),
+            "items":       items_map.get(meal_id, [])
+        })
+
     return jsonify({
-        "username": username,
-        "email": email,
+        "username":    username,
+        "email":       email,
         "bundleCount": bundle_count,
-        "avgRating": round(avg_rating, 1),
-        "bundles": list(meals.values())
+        "avgRating":   round(avg_rating, 1),
+        "bundles":     bundles
     })
 
+# =============================== LOGIN ===============================
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -491,6 +420,8 @@ def login():
         curr.close()
         conn.close()
 
+# =============================== SIGNUP ===============================
+
 @app.route("/signup", methods=["POST"])
 def signup():
     print("sign up")
@@ -519,7 +450,6 @@ def signup():
 
     finally:
         curr.close()
-        
         
         ## CHANGE PORT IF UR ON DIF ONE
 

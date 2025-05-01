@@ -16,7 +16,7 @@ import { useFocusEffect, router } from "expo-router";
 type Bundle = {
   id: number;
   name: string;
-  created_at: string;
+  created_at: number;
   items: string[];
 };
 
@@ -39,7 +39,7 @@ export default function Profile() {
         }
 
         try {
-          const res = await fetch(`${Constants.IP_ADDRESS}api/my-meals`, {
+          const res = await fetch(`${Constants.IP_ADDRESS}/api/profile`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (!res.ok) throw new Error(`Status ${res.status}`);
@@ -48,7 +48,7 @@ export default function Profile() {
             setUsername(data.username);
             setEmail(data.email);
             setBundleCount(data.bundleCount);
-            setAvgRating(data.avgRating);
+            setAvgRating(Number(data.avgRating));
             setBundles(data.bundles);
           }
         } catch (err) {
@@ -75,7 +75,9 @@ export default function Profile() {
       <SafeAreaProvider>
         <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
           <View style={styles.wrapper}>
-            <Text style={[GlobalStyles.title, { color: "black" }]}>Profile</Text>
+            <Text style={[GlobalStyles.title, { color: "black" }]}>
+              Profile
+            </Text>
 
             <View style={styles.accountCard}>
               <Text style={styles.accountHeader}>Account</Text>
@@ -96,11 +98,16 @@ export default function Profile() {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
               <Text style={styles.logoutButtonText}>Log Out</Text>
             </TouchableOpacity>
 
-            <Text style={[GlobalStyles.header, styles.historyTitle]}>Bundle History</Text>
+            <Text style={[GlobalStyles.header, styles.historyTitle]}>
+              Bundle History
+            </Text>
             <View style={GlobalStyles.divider} />
 
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -109,13 +116,19 @@ export default function Profile() {
                   <View style={styles.bundleHeader}>
                     <Text style={styles.label}>{b.name}</Text>
                     <Text style={styles.timestamp}>
-                      {new Date(b.created_at).toLocaleString()}
+                      {new Date(b.created_at).toLocaleString(undefined, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </Text>
                   </View>
                   <View style={styles.foodItems}>
                     {b.items.map((item, i) => (
                       <Text key={i} style={styles.foodItem}>
-                        • {item.name}
+                        • {item}
                       </Text>
                     ))}
                   </View>
