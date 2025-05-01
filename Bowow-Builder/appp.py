@@ -366,7 +366,7 @@ def get_profile():
     cur.execute("""
         SELECT u.username,
                u.email,
-               COUNT(m.id)           AS bundle_count,
+               COUNT(DISTINCT m.id)           AS bundle_count,
                COALESCE(AVG(r.rating), 0) AS avg_rating
         FROM users u
         LEFT JOIN meals m   ON m.user_id = u.id
