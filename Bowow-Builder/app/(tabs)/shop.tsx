@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   header: {
-    marginTop: 50,
+    marginTop: 55,
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
@@ -358,7 +358,10 @@ const styles = StyleSheet.create({
   itemBox: {
     alignItems: "center",
     margin: 10,
-    width: 150,
+    width: 160,
+    height: 230,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 10,
   },
   imagePlaceholder: {
     width: 155,

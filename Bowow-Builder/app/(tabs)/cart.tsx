@@ -91,69 +91,84 @@ export default function CartScreen() {
   };
 
   return (
-    <ImageBackground source={require('../../assets/images/dark_blue.jpg')} style={styles.background}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.cartHeaderRow}>
-          <Text style={styles.header}>Cart</Text>
-          <View style={styles.cartIconWrapper}>
-            <Image
-              source={require("../../assets/images/cart_white.png")}
-              style={styles.cartIcon}
-            />
-            {cart.length > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.badgeText}>{cart.length}</Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        <Text style={styles.totalPrice}>Total Price: ${total.toFixed(2)}</Text>
-        <Text style={isOver ? styles.overText : styles.underText}>
-          {isOver
-            ? `Amount Over: $${amountLeftOrOver}`
-            : `Amount Left: $${amountLeftOrOver}`}
-        </Text>
-
-        {cart.map((item, index) => (
-      <View key={index} style={styles.itemBox}>
-        <View style={styles.itemTextWrapper}>
-          <Text style={styles.itemText}>{item.name}</Text>
-          <Text style={styles.itemPrice}>${parseFloat(item.price as any).toFixed(2)}</Text>
-        </View>
-        <TouchableOpacity onPress={() => removeFromCart(item.id)} style={styles.trashWrapper}>
-          <Image source={require('../../assets/images/trash.png')} style={styles.trashIcon} />
-        </TouchableOpacity>
-      </View>
-
-        ))}
-
-        <TextInput
-          style={styles.input}
-          placeholder="Name your meal..."
-          placeholderTextColor="gray"
-          value={mealName}
-          onChangeText={setMealName}
-        />
-
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveMeal}>
-          <Text style={styles.saveButtonText}>Save and Post Meal!!</Text>
-        </TouchableOpacity>
-
-        {cart.length > 0 && (
-          <TouchableOpacity style={styles.clearButton} onPress={clearCart}>
-            <Text style={styles.clearButtonText}>Clear Cart</Text>
-          </TouchableOpacity>
-        )}
-      </ScrollView>
-
-      {showToast && (
-        <Animated.View
-          style={[styles.toast, { transform: [{ translateY: toastY }] }]}
+    <ImageBackground
+      source={require('../../assets/images/dark_blue.jpg')}
+      style={styles.background}
+    >
+      <View style={styles.scrollWrapper}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.toastText}>Added to Cart!</Text>
-        </Animated.View>
-      )}
+          <View style={styles.cartHeaderRow}>
+            <Text style={styles.headerCentered}>Cart</Text>
+            <View style={styles.cartIconWrapper}>
+              <Image
+                source={require("../../assets/images/cart_white.png")}
+                style={styles.cartIcon}
+              />
+              {cart.length > 0 && (
+                <View style={styles.cartBadge}>
+                  <Text style={styles.badgeText}>{cart.length}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+
+          <Text style={styles.totalPrice}>Total Price: ${total.toFixed(2)}</Text>
+          <Text style={isOver ? styles.overText : styles.underText}>
+            {isOver
+              ? `Amount Over: $${amountLeftOrOver}`
+              : `Amount Left: $${amountLeftOrOver}`}
+          </Text>
+
+          {cart.map((item, index) => (
+            <View key={index} style={styles.itemBox}>
+              <View style={styles.itemTextWrapper}>
+                <Text style={styles.itemText}>{item.name}</Text>
+                <Text style={styles.itemText}>
+                  ${parseFloat(item.price as any).toFixed(2)}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => removeFromCart(item.id)}
+                style={styles.trashWrapper}
+              >
+                <Image
+                  source={require('../../assets/images/trash.png')}
+                  style={styles.trashIcon}
+                />
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          <TextInput
+            style={styles.input}
+            placeholder="Name your meal..."
+            placeholderTextColor="gray"
+            value={mealName}
+            onChangeText={setMealName}
+          />
+
+          <TouchableOpacity style={styles.saveButton} onPress={handleSaveMeal}>
+            <Text style={styles.saveButtonText}>Save and Post Meal!!</Text>
+          </TouchableOpacity>
+
+          {cart.length > 0 && (
+            <TouchableOpacity style={styles.clearButton} onPress={clearCart}>
+              <Text style={styles.clearButtonText}>Clear Cart</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+
+        {showToast && (
+          <Animated.View
+            style={[styles.toast, { transform: [{ translateY: toastY }] }]}
+          >
+            <Text style={styles.toastText}>Added to Cart!</Text>
+          </Animated.View>
+        )}
+      </View>
     </ImageBackground>
   );
 }
@@ -166,11 +181,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  container: {
-    padding: 20,
-    paddingTop: 20,
-    alignItems: "center",
-  },
+container: {
+  flexGrow: 1,
+  justifyContent: "flex-start",
+  alignItems: "center",
+  padding: 20,
+  paddingTop: 20,
+},
   header: {
     fontSize: 24,
     color: "white",
@@ -184,6 +201,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 5,
   },
+  scrollWrapper: {
+  flex: 1,
+  width: "100%",
+},
   underText: {
     color: "lightgreen",
     fontSize: 16,
@@ -247,6 +268,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderRadius: 10,
   },
+  headerCentered: {
+  position: "absolute",
+  left: 0,
+  right: 0,
+  textAlign: "center",
+  fontSize: 24,
+  color: "white",
+  fontWeight: "bold",
+},
   saveButton: {
     backgroundColor: "#4CAF50",
     padding: 12,
@@ -268,18 +298,20 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
-  cartHeaderRow: {
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginTop: 50,
-    marginBottom: 10,
-  },
-  cartIconWrapper: {
-    position: "relative",
-  },
+cartHeaderRow: {
+  width: "100%",
+  height: 60,
+  justifyContent: "center", 
+  alignItems: "center",
+  position: "relative", 
+  marginTop: 30,
+  marginBottom: 10,
+},
+cartIconWrapper: {
+  position: "absolute",
+  right: 2,
+  top: 10,
+},
   cartIcon: {
     width: 40,
     height: 40,

@@ -102,12 +102,6 @@ const LoginScreen = () => {
                   secureTextEntry
                 />
 
-                <Link href="/forgotpass" style={{ marginTop: 5 }}>
-                  <Text style={[GlobalStyles.reminder, { textAlign: "right" }]}>
-                    Forgot your password?
-                  </Text>
-                </Link>
-
                 <TouchableOpacity style={GlobalStyles.button} onPress={submit}>
                   <Text style={GlobalStyles.buttonText}>Login</Text>
                 </TouchableOpacity>
