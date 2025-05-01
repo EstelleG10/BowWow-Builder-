@@ -62,13 +62,14 @@ cur.execute("""
             created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 """)
-# individual items in a meal
+# individual items in a meal (allowing duplicates)
 cur.execute("""
-    CREATE TABLE IF NOT EXISTS meal_items (meal_id INTEGER REFERENCES meals(id) ON DELETE CASCADE,
-            item_id INTEGER REFERENCES items(id) ON DELETE CASCADE, 
-            PRIMARY KEY (meal_id, item_id));
+    CREATE TABLE IF NOT EXISTS meal_items (
+        id SERIAL PRIMARY KEY,
+        meal_id INTEGER REFERENCES meals(id) ON DELETE CASCADE,
+        item_id INTEGER REFERENCES items(id) ON DELETE CASCADE
+    );
 """)
-
 # make ratings table
 cur.execute("""
 CREATE TABLE IF NOT EXISTS ratings (

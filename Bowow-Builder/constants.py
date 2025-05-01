@@ -1,6 +1,6 @@
 DB_NAME = "itemsdb"
 DB_USER = "postgres"
-DB_PASSWORD = "1235"
+DB_PASSWORD = ""
 DB_HOST = "localhost"
 DB_PORT = "5432"
 INVALID_SALT = 3

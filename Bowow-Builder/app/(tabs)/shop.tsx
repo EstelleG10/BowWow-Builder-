@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, ScrollView,
-  ImageBackground, TextInput, Image
+  StyleSheet, Text, View, Vibration, TouchableOpacity, ScrollView,
+  ImageBackground, TextInput, Image, Animated
 } from 'react-native';
+
 import { useCart } from '../cartcontext';
 import * as Constants from '../../constants';
 
@@ -25,6 +26,27 @@ export default function Category() {
 
   const { cart, addToCart } = useCart();
   const API_URL = Constants.IP_ADDRESS + 'items';
+
+  const [showToast, setShowToast] = useState(false);
+  const toastY = useRef(new Animated.Value(100)).current;
+
+  const triggerToast = () => {
+    // Vibration.vibrate(30);
+    setShowToast(true);
+    Animated.sequence([
+      Animated.timing(toastY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.delay(1000),
+      Animated.timing(toastY, {
+        toValue: 100,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setShowToast(false));
+  };
 
   // fetch items from API 
   useEffect(() => {
@@ -83,6 +105,15 @@ export default function Category() {
         <View style={styles.container}>
           <Text style={styles.header}>Shop</Text>
 
+          <View style={styles.cartIconWrapper}>
+            <Image source={require('../../assets/images/cart.png')} style={styles.cartIcon} />
+            {cart.length > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.badgeText}>{cart.length}</Text>
+              </View>
+            )}
+          </View>
+
           <View style={styles.searchWrapper}>
             <TextInput
               style={styles.searchBar}
@@ -135,13 +166,21 @@ export default function Category() {
           </View>
 
           <Text style={styles.totalPrice}>Total Price: ${calculateTotal()}</Text>
+          <Text style={styles.Click}>Click Items to Add to Cart!</Text>
 
           <View style={styles.grid}>
             {filteredItems.map((item, index) => (
-              <TouchableOpacity key={index} style={styles.itemBox} onPress={() => addToCart(item)}>
+              <TouchableOpacity
+                key={index}
+                style={styles.itemBox}
+                onPress={() => {
+                  addToCart(item);
+                  triggerToast();
+                }}
+              >
                 {item.img_route && item.img_route.trim() ? (
                   <Image
-                    source={{ uri: Constants.IP_ADDRESS + `${encodeURI(item.img_route.trim())}` }}
+                    source={{ uri: `${Constants.IP_ADDRESS}/${encodeURI(item.img_route.trim())}` }}
                     style={styles.itemImage}
                     onError={() => console.warn(`Could not load image for ${item.name}`)}
                   />
@@ -155,6 +194,12 @@ export default function Category() {
           </View>
         </View>
       </ScrollView>
+
+      {showToast && (
+        <Animated.View style={[styles.toast, { transform: [{ translateY: toastY }] }]}> 
+          <Text style={styles.toastText}>Added to Cart!</Text>
+        </Animated.View>
+      )}
     </ImageBackground>
   );
 }
@@ -170,7 +215,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: 80,
   },
   container: {
     alignItems: 'center',
@@ -182,6 +227,30 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     color: 'black',
+  },
+  cartIconWrapper: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+  },
+  cartIcon: {
+    width: 40,
+    height: 40,
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: 'red',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   searchWrapper: {
     width: '100%',
@@ -211,6 +280,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginHorizontal: 5,
   },
+  Click: {
+    fontSize: 15,
+    marginBottom: 10,
+    color: 'black',
+    textAlign: 'left',
+    fontStyle: 'italic',
+  },
   categorySelected: {
     backgroundColor: '#007aff',
   },
@@ -238,7 +314,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   filterButton: {
-    backgroundColor: '#007aff',
+    backgroundColor: '#1c37b0',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -284,5 +360,21 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 5,
     resizeMode: 'contain',
+  },
+  toast: {
+    position: 'absolute',
+    width: 150,
+    height: 50,
+    bottom: 20,
+    alignSelf: 'center',
+    backgroundColor: '#1c37b0',
+    padding: 15,
+    borderRadius: 8,
+    zIndex: 20,
+  },
+  toastText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });

@@ -1,40 +1,20 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   ScrollView,
-  StatusBar,
   ImageBackground,
   Image,
   TextInput,
-  Dimensions,
   Pressable,
-  RefreshControl, // adding live udpate on index page 
+  StatusBar,
+  Dimensions,
+  StyleSheet,
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import * as Constants from '../../constants';
-
-const hardcodedBundles = [
-  {
-    title: 'Hungry Man Special',
-    images: [
-      require('../../assets/images/image1.jpg'),
-      require('../../assets/images/image2-min.png'),
-      require('../../assets/images/image3-min.png'),
-    ],
-  },
-  {
-    title: 'Snack Restock',
-    images: [
-      require('../../assets/images/lesserevil_fieryhot.jpg'),
-      require('../../assets/images/orville_popcorn.jpg'),
-    ],
-  },
-];
 
 const Home = () => {
   const [bundles, setBundles] = useState<any[]>([]);
@@ -42,6 +22,8 @@ const Home = () => {
   const [ratings, setRatings] = useState<{ [mealId: number]: string }>({});
   const [comments, setComments] = useState<{ [mealId: number]: any[] }>({});
   const [loading, setLoading] = useState(false);
+  const [showNoBundlesMessage, setShowNoBundlesMessage] = useState(false);
+
 
   const fetchComments = async (mealId: number) => {
     try {
@@ -52,9 +34,6 @@ const Home = () => {
       console.error("Error fetching comments:", err);
     }
   };
-
-
-
 
   const submitRating = async (mealId: number, rating: string) => {
     try {
@@ -88,14 +67,12 @@ const Home = () => {
     }
   };
 
-  // will fetch after each meal is placed NEED TO SEE HOW THIS WOULD WORK FOR EVERYONE
   const fetchBundles = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(Constants.IP_ADDRESS + 'api/meals');
       let data = await response.json();
 
-      // sort the ratings from most to least stars
       data.sort((a, b) => {
         const ratingA = a.avg_rating ?? 0;
         const ratingB = b.avg_rating ?? 0;
@@ -103,6 +80,10 @@ const Home = () => {
       });
 
       setBundles(data);
+
+      setShowNoBundlesMessage(data.length === 0);
+
+
       data.forEach((meal: any) => fetchComments(meal.id));
     } catch (err) {
       console.error('Error fetching meals:', err);
@@ -119,8 +100,7 @@ const Home = () => {
       });
 
       if (res.ok) {
-        alert('Comment deleted!');
-        fetchComments(mealId); // Refresh comments after deletion
+        fetchComments(mealId);
       } else {
         alert('Failed to delete comment.');
       }
@@ -140,8 +120,7 @@ const Home = () => {
     }, [fetchBundles])
   );
 
-
-  const displayBundles = error || bundles.length === 0 ? hardcodedBundles : bundles;
+  const displayBundles = bundles;
 
   return (
     <ImageBackground
@@ -151,10 +130,14 @@ const Home = () => {
       <SafeAreaProvider>
         <SafeAreaView style={styles.container} edges={['top']}>
           <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
-
             <View style={styles.textBox}>
               <Text style={styles.header}>Bow Wow Builder</Text>
               <Text style={styles.textHeader}>The Wows of the Week</Text>
+      {showNoBundlesMessage && (
+              <Text style={styles.noBundlesMessage}>
+                You haven’t created any bundles yet! Build your first one!
+              </Text>
+            )}
             </View>
 
             {displayBundles.map((bundle, idx) => (
@@ -199,33 +182,27 @@ const Home = () => {
                 </View>
 
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {bundle.items
-                    ? bundle.items.map((item: any, i: number) => {
-                      const trimmedRoute = item.img_route?.trim();
-                      return (
-                        <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
-                          {trimmedRoute ? (
-                            <Image
-                              source={{ uri: Constants.IP_ADDRESS + `${trimmedRoute}` }}
-                              style={styles.bundleImage}
-                              resizeMode="contain"
-                              onError={() =>
-                                console.warn(`Could not load image for ${item.name}`)
-                              }
-                            />
-                          ) : (
-                            <View
-                              key={`fallback-${i}`}
-                              style={[styles.bundleImage, { backgroundColor: '#999' }]}
-                            />
-                          )}
-                          <Text style={styles.itemText}>{item.name}</Text>
-                        </View>
-                      );
-                    })
-                    : bundle.images.map((img: any, i: number) => (
-                      <Image key={i} source={img} style={styles.bundleImage} />
-                    ))}
+                  {bundle.items.map((item: any, i: number) => {
+                    const trimmedRoute = item.img_route?.trim();
+                    return (
+                      <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
+                        {trimmedRoute ? (
+                          <Image
+                            source={{ uri: Constants.IP_ADDRESS + trimmedRoute }}
+                            style={styles.bundleImage}
+                            resizeMode="contain"
+                            onError={() => console.warn(`Could not load image for ${item.name}`)}
+                          />
+                        ) : (
+                          <View
+                            key={`fallback-${i}`}
+                            style={[styles.bundleImage, { backgroundColor: '#999' }]}
+                          />
+                        )}
+                        <Text style={styles.itemText}>{item.name}</Text>
+                      </View>
+                    );
+                  })}
                 </ScrollView>
 
                 {comments[bundle.id]?.length > 0 && (
@@ -243,12 +220,11 @@ const Home = () => {
                         </Pressable>
                       </View>
                     ))}
-
                   </View>
                 )}
+
                 <View style={styles.commentInputSection}>
                   <TextInput
-                    // for comments 
                     style={styles.commentInput}
                     placeholder="Add a comment..."
                     placeholderTextColor="#aaa"
@@ -268,7 +244,7 @@ const Home = () => {
                           method: "POST",
                           headers: {
                             "Authorization": `Bearer ${token}`,
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
                           },
                           body: JSON.stringify({
                             meal_id: bundle.id,
@@ -276,9 +252,8 @@ const Home = () => {
                           }),
                         });
 
-                        fetchComments(bundle.id); // refresh comments
+                        fetchComments(bundle.id);
                         setRatings((prev) => ({ ...prev, [`comment_${bundle.id}`]: '' }));
-                        alert("Comment posted!");
                       } catch (err) {
                         console.error("Error posting comment:", err);
                       }
@@ -287,16 +262,15 @@ const Home = () => {
                     <Text style={styles.submitText}>Post</Text>
                   </Pressable>
                 </View>
-
               </View>
             ))}
           </ScrollView>
-
         </SafeAreaView>
       </SafeAreaProvider>
     </ImageBackground>
   );
 };
+
 
 // make sure the width matches user phone
 const screenWidth = Dimensions.get('window').width;
@@ -430,6 +404,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 20,
   },
+
+  noBundlesMessage: {
+  textAlign: 'center',
+  fontSize: 16,
+  color: 'white',
+  paddingTop: 10,
+  fontStyle: 'italic',
+},
 
   posterText: {
     fontSize: 14,

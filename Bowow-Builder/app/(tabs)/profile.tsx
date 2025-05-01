@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, StyleSheet, ImageBackground } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  ImageBackground,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Constants from "../../constants";
 import GlobalStyles from "../../styles/GlobalStyleSheet";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, router } from "expo-router";
 
 type Bundle = {
   id: number;
@@ -14,7 +21,6 @@ type Bundle = {
 };
 
 export default function Profile() {
-  // variables for profile data
   const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [bundleCount, setBundleCount] = useState(0);
@@ -56,18 +62,21 @@ export default function Profile() {
     }, [])
   );
 
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("token");
+    router.replace("/login");
+  };
+
   return (
     <ImageBackground
-      source={require('../../assets/images/background_white.jpg')}
+      source={require("../../assets/images/background_white.jpg")}
       style={styles.background}
     >
       <SafeAreaProvider>
         <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
           <View style={styles.wrapper}>
-            {/* Profile Header */}
             <Text style={[GlobalStyles.title, { color: "black" }]}>Profile</Text>
 
-            {/* Account Information */}
             <View style={styles.accountCard}>
               <Text style={styles.accountHeader}>Account</Text>
               <View style={styles.accountInfo}>
@@ -76,7 +85,6 @@ export default function Profile() {
               </View>
             </View>
 
-            {/* Stats */}
             <View style={styles.statsCard}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{bundleCount}</Text>
@@ -88,7 +96,10 @@ export default function Profile() {
               </View>
             </View>
 
-            {/* History */}
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <Text style={styles.logoutButtonText}>Log Out</Text>
+            </TouchableOpacity>
+
             <Text style={[GlobalStyles.header, styles.historyTitle]}>Bundle History</Text>
             <View style={GlobalStyles.divider} />
 
@@ -104,7 +115,6 @@ export default function Profile() {
                   <View style={styles.foodItems}>
                     {b.items.map((item, i) => (
                       <Text key={i} style={styles.foodItem}>
-                        {/* FIX THIS LATER ESTELLE THIS MEANS ONLY ITEMS SHOWNON PROF */}
                         • {item.name}
                       </Text>
                     ))}
@@ -127,7 +137,6 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     paddingHorizontal: 16,
-
   },
   accountCard: {
     backgroundColor: "#F5F5F5",
@@ -151,19 +160,8 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  userName: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 16,
-    color: "#333",
-  },
-  userEmail: {
-    fontSize: 14,
-    color: "black",
-    marginBottom: 16,
+    width: "100%",
+    height: "100%",
   },
   statsCard: {
     backgroundColor: "#002F6A",
@@ -177,6 +175,18 @@ const styles = StyleSheet.create({
   statItem: { alignItems: "center" },
   statValue: { fontSize: 24, fontWeight: "bold", color: "white" },
   statLabel: { fontSize: 14, color: "white", marginTop: 4 },
+  logoutButton: {
+    backgroundColor: "#B00020",
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  logoutButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
   historyTitle: {
     fontWeight: "normal",
     marginBottom: 8,
