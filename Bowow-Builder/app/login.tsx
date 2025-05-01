@@ -8,34 +8,35 @@ import {
   StyleSheet,
   ImageBackground,
   StatusBar,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Link } from "expo-router";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import GlobalStyles from "../styles/GlobalStyleSheet";
-import * as Constants from '../constants';
+import * as Constants from "../constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
+const API_URL = Constants.IP_ADDRESS + "login";
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = Constants.IP_ADDRESS + 'login';
 const LoginScreen = () => {
   const router = useRouter();
-  const [username, setname] = useState('');
-  const [password, setpass] = useState('');
+  const [username, setname] = useState("");
+  const [password, setpass] = useState("");
 
-
-  // added tokens so when user logs in they have their infop still ther are lots of debugging comments rn LOL
   const submit = async () => {
-    if (username == '' || password == '') {
-      Alert.alert('Error', 'Please enter the values');
+    if (username === "" || password === "") {
+      Alert.alert("Error", "Please enter the values");
     } else {
       try {
         const response = await fetch(API_URL, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             username: username,
@@ -45,75 +46,82 @@ const LoginScreen = () => {
         const data = await response.json();
         if (response.status === 200 && data.token) {
           const { token } = data;
-          await AsyncStorage.setItem('token', token);
-          Alert.alert('Success', 'Username and password are entered');
-          console.log("Saved token:", token);
-          console.log('Username', username);
-          console.log('Password', password);
-          router.replace('/(tabs)');
+          await AsyncStorage.setItem("token", token);
+          Alert.alert("Success", "Username and password are entered");
+          router.replace("/(tabs)");
+        } else {
+          Alert.alert("Login failed", "Invalid username or password");
         }
-        else {
-          Alert.alert("login failed", "invalid user or password")
-        }
-      }
-      catch (error) {
-        Alert.alert("error", "error occured. Please try again.")
+      } catch (error) {
+        Alert.alert("Error", "An error occurred. Please try again.");
       }
     }
-
-  }
+  };
 
   return (
     <SafeAreaProvider style={{ flex: 1 }}>
       <StatusBar hidden />
-
       <ImageBackground
-        source={require("../assets/images/wave_background_blue.png")}
-        resizeMode="stretch"
-        style={[GlobalStyles.image, { backgroundColor: "white" }]}
-      />
-
-      <SafeAreaView
-        style={[
-          { flex: 1.5, backgroundColor: "white" },
-          GlobalStyles.container,
-        ]}
+        source={require("../assets/images/login.png")}
+        style={{ flex: 1 }}
+        resizeMode="cover"
       >
-        <Text style={[GlobalStyles.title, { color: "black" }]}>Login</Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ flex: 1 }}
+          >
+            {/* <ScrollView
+              contentContainerStyle={{ flexGrow: 1 }}
+              keyboardShouldPersistTaps="handled"
+            > */}
+              <SafeAreaView
+                style={[
+                  { flex: 1.5, paddingTop: 80 },
+                  GlobalStyles.container,
+                ]}
+              >
+                <Text style={[GlobalStyles.title, { color: "black", textAlign: "center" }]}>
+                  Login
+                </Text>
 
-        <TextInput
-          style={GlobalStyles.input}
-          placeholder="username"
-          placeholderTextColor="#000080"
-          value={username}
-          onChangeText={setname}
-        />
+                <TextInput
+                  style={GlobalStyles.input}
+                  placeholder="username"
+                  placeholderTextColor="#000080"
+                  value={username}
+                  onChangeText={setname}
+                />
 
-        <TextInput
-          style={GlobalStyles.input}
-          placeholder="password"
-          placeholderTextColor="#000080"
-          value={password}
-          onChangeText={setpass}
-          secureTextEntry
-        />
+                <TextInput
+                  style={GlobalStyles.input}
+                  placeholder="password"
+                  placeholderTextColor="#000080"
+                  value={password}
+                  onChangeText={setpass}
+                  secureTextEntry
+                />
 
-        <Link href="/forgotpass" style={{ marginTop: 5 }}>
-          <Text style={[GlobalStyles.reminder, { textAlign: "right" }]}>
-            Forgot your password?
-          </Text>
-        </Link>
+                <Link href="/forgotpass" style={{ marginTop: 5 }}>
+                  <Text style={[GlobalStyles.reminder, { textAlign: "right" }]}>
+                    Forgot your password?
+                  </Text>
+                </Link>
 
-        <TouchableOpacity style={GlobalStyles.button} onPress={submit}>
-          <Text style={GlobalStyles.buttonText}>Login</Text>
-        </TouchableOpacity>
+                <TouchableOpacity style={GlobalStyles.button} onPress={submit}>
+                  <Text style={GlobalStyles.buttonText}>Login</Text>
+                </TouchableOpacity>
 
-        <Link href="/signup" style={{ marginTop: 5 }}>
-          <Text style={[GlobalStyles.reminder, { textAlign: "center" }]}>
-            Don't have an account? Register Now
-          </Text>
-        </Link>
-      </SafeAreaView>
+                <Link href="/signup" style={{ marginTop: 5 }}>
+                  <Text style={[GlobalStyles.reminder, { textAlign: "center" }]}>
+                    Don't have an account? Register Now
+                  </Text>
+                </Link>
+              </SafeAreaView>
+            {/* </ScrollView> */}
+          </KeyboardAvoidingView>
+        </TouchableWithoutFeedback>
+      </ImageBackground>
     </SafeAreaProvider>
   );
 };

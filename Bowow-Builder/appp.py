@@ -19,8 +19,8 @@ bcrypt = Bcrypt(app)
 def get_db_connection():
     return psycopg2.connect(
         dbname="itemsdb",
-        user="lesli",
-        password="1234",
+        user="postgres",
+        password="",
         host= "localhost",
         port= "5432"
     )
@@ -56,11 +56,15 @@ def get_items():
     conn = get_db_connection()
     cur = conn.cursor()
 
+# Order alphabetically (putting numbers last instead of first!)
     cur.execute("""
         SELECT i.id, i.name, i.price, c.name AS category, i.img_route
         FROM items i
         LEFT JOIN item_categories ic ON i.id = ic.item_id
-        LEFT JOIN categories c ON ic.category_id = c.id;
+        LEFT JOIN categories c ON ic.category_id = c.id
+        ORDER BY 
+        (LEFT(i.name, 1) ~ '^\d') ASC, 
+        i.name ASC;
     """)
     rows = cur.fetchall()
     cur.close()

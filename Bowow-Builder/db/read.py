@@ -5,8 +5,8 @@ from constants import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
  # Connect to local PostgreSQL
 conn = psycopg.connect(
     dbname="itemsdb",
-    user="lesli",
-    password="1234",
+    user="postgres",
+    password="",
     host= "localhost",
     port= "5432"
 )

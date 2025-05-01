@@ -1,19 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  ScrollView,
-  ImageBackground,
-  TextInput,
-  Image,
-  Animated,
-} from "react-native";
-
-import { useCart } from "../cartcontext";
-import * as Constants from "../../constants";
-import { router } from "expo-router";
+  StyleSheet, Text, View, Vibration, TouchableOpacity, ScrollView,
+  ImageBackground, TextInput, Image, Animated
+} from 'react-native';
+import { router } from 'expo-router';
+import { useCart } from '../cartcontext';
+import * as Constants from '../../constants';
 
 // type for each item
 type Item = {
@@ -118,20 +110,14 @@ export default function Category() {
         <View style={styles.container}>
           <Text style={styles.header}>Shop</Text>
 
-          <TouchableOpacity
-            style={styles.cartIconWrapper}
-            onPress={() => router.push("/cart")}
-          >
-            <Image
-              source={require("../../assets/images/cart.png")}
-              style={styles.cartIcon}
-            />
-            {cart.length > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.badgeText}>{cart.length}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+      <TouchableOpacity style={styles.cartIconWrapper} onPress={() => router.push('/cart')}>
+        <Image source={require('../../assets/images/cart.png')} style={styles.cartIcon} />
+        {cart.length > 0 && (
+          <View style={styles.cartBadge}>
+            <Text style={styles.badgeText}>{cart.length}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
 
           <View style={styles.searchWrapper}>
             <TextInput
@@ -218,10 +204,8 @@ export default function Category() {
                 ) : (
                   <View style={styles.imagePlaceholder} />
                 )}
-                <Text style={styles.itemText} numberOfLines={2}>
-                  {item.name}
-                </Text>
-                <Text style={styles.itemText}>${item.price}</Text>
+                <Text style={styles.itemText} numberOfLines={2}>{item.name}</Text>
+                <Text style={styles.itemText}>${parseFloat(item.price as any).toFixed(2)}</Text>
               </TouchableOpacity>
             ))}
           </View>

@@ -91,10 +91,7 @@ export default function CartScreen() {
   };
 
   return (
-    <ImageBackground
-      source={require("../../assets/images/background_blue.png")}
-      style={styles.background}
-    >
+    <ImageBackground source={require('../../assets/images/dark_blue.jpg')} style={styles.background}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.cartHeaderRow}>
           <Text style={styles.header}>Cart</Text>
@@ -119,21 +116,16 @@ export default function CartScreen() {
         </Text>
 
         {cart.map((item, index) => (
-          <View key={index} style={styles.itemBox}>
-            <View style={styles.itemTextWrapper}>
-              <Text style={styles.itemText}>{item.name}</Text>
-              <Text style={styles.itemPrice}>${item.price}</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => removeFromCart(item.id)}
-              style={styles.trashWrapper}
-            >
-              <Image
-                source={require("../../assets/images/trash.png")}
-                style={styles.trashIcon}
-              />
-            </TouchableOpacity>
-          </View>
+      <View key={index} style={styles.itemBox}>
+        <View style={styles.itemTextWrapper}>
+          <Text style={styles.itemText}>{item.name}</Text>
+          <Text style={styles.itemPrice}>${parseFloat(item.price as any).toFixed(2)}</Text>
+        </View>
+        <TouchableOpacity onPress={() => removeFromCart(item.id)} style={styles.trashWrapper}>
+          <Image source={require('../../assets/images/trash.png')} style={styles.trashIcon} />
+        </TouchableOpacity>
+      </View>
+
         ))}
 
         <TextInput

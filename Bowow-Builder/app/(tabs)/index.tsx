@@ -20,11 +20,7 @@ import * as Constants from '../../constants';
 const StarRating = ({ rating, onChange }) => (
   <View style={{ flexDirection: "row" }}>
     {[1, 2, 3, 4, 5].map((n) => (
-      <Pressable
-        key={n}
-        onPress={() => onChange(n)}
-        style={{ marginHorizontal: 2 }}
-      >
+      <Pressable key={n} onPress={() => onChange(n)} style={{ marginHorizontal: 2 }}>
         <FontAwesome
           name={n <= rating ? "star" : "star-o"}
           size={24}
@@ -35,7 +31,6 @@ const StarRating = ({ rating, onChange }) => (
   </View>
 );
 
-
 const Home = () => {
   const [bundles, setBundles] = useState<any[]>([]);
   const [error, setError] = useState(false);
@@ -43,7 +38,7 @@ const Home = () => {
   const [comments, setComments] = useState<{ [mealId: number]: any[] }>({});
   const [loading, setLoading] = useState(false);
   const [showNoBundlesMessage, setShowNoBundlesMessage] = useState(false);
-
+  const [username, setUsername] = useState('');
 
   const fetchComments = async (mealId: number) => {
     try {
@@ -52,6 +47,14 @@ const Home = () => {
       setComments(prev => ({ ...prev, [mealId]: data }));
     } catch (err) {
       console.error("Error fetching comments:", err);
+    }
+  };
+
+  const fetchUsername = async () => {
+    const token = await AsyncStorage.getItem("token");
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      setUsername(payload.username);
     }
   };
 
@@ -64,20 +67,16 @@ const Home = () => {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          meal_id: mealId,
-          rating: parseInt(rating),
-        }),
+        body: JSON.stringify({ meal_id: mealId, rating: parseInt(rating) }),
       });
 
       const data = await res.json();
-      console.log("Rating response:", data);
 
       if (res.status === 400 && data.error === "You have already rated this meal!") {
         alert("You already rated this meal!");
       } else if (res.ok) {
         alert("Thanks for rating!");
-        await fetchBundles(); // Refresh bundles
+        await fetchBundles();
       } else {
         alert("Something went wrong!");
       }
@@ -100,10 +99,7 @@ const Home = () => {
       });
 
       setBundles(data);
-
       setShowNoBundlesMessage(data.length === 0);
-
-
       data.forEach((meal: any) => fetchComments(meal.id));
     } catch (err) {
       console.error('Error fetching meals:', err);
@@ -132,6 +128,7 @@ const Home = () => {
 
   useEffect(() => {
     fetchBundles();
+    fetchUsername();
   }, []);
 
   useFocusEffect(
@@ -140,13 +137,8 @@ const Home = () => {
     }, [fetchBundles])
   );
 
-  const displayBundles = bundles;
-
   return (
-    <ImageBackground
-      source={require('../../assets/images/background_blue.png')}
-      style={styles.background}
-    >
+    <ImageBackground source={require('../../assets/images/dark_blue.jpg')} style={styles.background}>
       <SafeAreaProvider>
         <SafeAreaView style={styles.container} edges={['top']}>
           <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
@@ -160,23 +152,21 @@ const Home = () => {
               )}
             </View>
 
-            {displayBundles.map((bundle, idx) => (
+            {bundles.map((bundle, idx) => (
               <View key={idx} style={styles.bundleBox}>
                 <Text style={styles.bundleTitle}>{bundle.title || bundle.name}</Text>
                 <Text style={styles.posterText}>Posted by: {bundle.poster}</Text>
                 {bundle.avg_rating !== undefined && (
                   <Text style={styles.ratingDisplay}>
-                    Average Rating: {bundle.avg_rating} 
+                    Average Rating: {bundle.avg_rating}
                   </Text>
                 )}
+
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
                   <StarRating
                     rating={parseInt(ratings[bundle.id]) || 0}
-                    onChange={(val) =>
-                      setRatings((prev) => ({ ...prev, [bundle.id]: String(val) }))
-                    }
+                    onChange={(val) => setRatings((prev) => ({ ...prev, [bundle.id]: String(val) }))}
                   />
-
                   <Pressable
                     style={styles.submitButton}
                     onPress={() => {
@@ -202,13 +192,9 @@ const Home = () => {
                             source={{ uri: Constants.IP_ADDRESS + trimmedRoute }}
                             style={styles.bundleImage}
                             resizeMode="contain"
-                            onError={() => console.warn(`Could not load image for ${item.name}`)}
                           />
                         ) : (
-                          <View
-                            key={`fallback-${i}`}
-                            style={[styles.bundleImage, { backgroundColor: '#999' }]}
-                          />
+                          <View style={[styles.bundleImage, { backgroundColor: '#999' }]} />
                         )}
                         <Text style={styles.itemText}>{item.name}</Text>
                       </View>
@@ -220,16 +206,20 @@ const Home = () => {
                   <View style={styles.commentSection}>
                     <Text style={styles.commentHeader}>What people are saying:</Text>
                     {comments[bundle.id].map((c, i) => (
-                      <View key={i} style={styles.commentBox}>
+                    <View key={i} style={[styles.commentBox, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+                      <View style={{ flex: 1 }}>
                         <Text style={styles.commentUser}>{c.user}</Text>
                         <Text style={styles.commentText}>{c.text}</Text>
-                        <Pressable
-                          style={styles.deleteButton}
-                          onPress={() => handleDeleteComment(c.id, bundle.id)}
-                        >
-                          <Text style={styles.deleteText}>Delete</Text>
-                        </Pressable>
                       </View>
+                      {c.user === username && (
+                        <Pressable onPress={() => handleDeleteComment(c.id, bundle.id)} style={{ paddingLeft: 10 }}>
+                          <Image
+                            source={require('../../assets/images/trash.png')}
+                            style={{ width: 20, height: 20 }}
+                          />
+                        </Pressable>
+                      )}
+                    </View>
                     ))}
                   </View>
                 )}
@@ -281,7 +271,6 @@ const Home = () => {
     </ImageBackground>
   );
 };
-
 
 // make sure the width matches user phone
 const screenWidth = Dimensions.get('window').width;
