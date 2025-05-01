@@ -5,8 +5,8 @@ from constants import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
  # Connect to local PostgreSQL
 conn = psycopg.connect(
     dbname="itemsdb",
-    user="estellegerber",
-    password="",
+    user="lesli",
+    password="1234",
     host= "localhost",
     port= "5432"
 )
@@ -55,13 +55,15 @@ CREATE TABLE IF NOT EXISTS item_categories (
 
 # meals 
 cur.execute("""
-    CREATE TABLE IF NOT EXISTS meals (id SERIAL PRIMARY KEY,
+    CREATE TABLE IF NOT EXISTS meals (
+            id SERIAL PRIMARY KEY,
             name TEXT NOT NULL, 
-            total_price NUMERIC NOT NULL CHECK (total_price <= 12),
             user_id INTEGER REFERENCES users(id) ON DELETE SET NULL, 
-            created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            total_price  NUMERIC NOT NULL
     );
 """)
+
 # individual items in a meal (allowing duplicates)
 cur.execute("""
     CREATE TABLE IF NOT EXISTS meal_items (

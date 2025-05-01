@@ -52,6 +52,7 @@ export default function CartScreen() {
       if (response.ok) {
         Alert.alert('Meal saved!');
         setMealName('');
+        clearCart();        
       } else {
         Alert.alert('Error saving meal.');
       }
