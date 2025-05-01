@@ -18,7 +18,7 @@ bcrypt = Bcrypt(app)
 def get_db_connection():
     return psycopg2.connect(
         dbname="itemsdb",
-        user="estellegerber",
+        user="postgres",
         password="",
         host= "localhost",
         port= "5432"
