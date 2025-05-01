@@ -77,7 +77,7 @@ cur.execute("""
 CREATE TABLE IF NOT EXISTS ratings (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
-    meal_id INTEGER REFERENCES meals(id),
+    meal_id INTEGER REFERENCES meals(id) ON DELETE CASCADE,
     rating INTEGER CHECK (rating >= 1 AND rating <= 5)
 );
 """)
@@ -87,11 +87,10 @@ cur.execute("""
 CREATE TABLE IF NOT EXISTS comments (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
-    meal_id INTEGER REFERENCES meals(id),
+    meal_id INTEGER REFERENCES meals(id) ON DELETE CASCADE,
     text TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 """)
 
 

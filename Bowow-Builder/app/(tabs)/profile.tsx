@@ -30,14 +30,9 @@ export default function Profile() {
   useFocusEffect(
     React.useCallback(() => {
       let isActive = true;
-
       (async () => {
         const token = await AsyncStorage.getItem("token");
-        if (!token) {
-          console.warn("No token found — user may not be logged in.");
-          return;
-        }
-
+        if (!token) return;
         try {
           const res = await fetch(`${Constants.IP_ADDRESS}/api/profile`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -55,10 +50,7 @@ export default function Profile() {
           console.error("Failed to load profile:", err);
         }
       })();
-
-      return () => {
-        isActive = false;
-      };
+      return () => { isActive = false };
     }, [])
   );
 
@@ -74,43 +66,43 @@ export default function Profile() {
     >
       <SafeAreaProvider>
         <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-          <View style={styles.wrapper}>
-            <Text style={[GlobalStyles.title, { color: "black" }]}>
-              Profile
-            </Text>
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <View style={styles.wrapper}>
+              <Text style={[GlobalStyles.title, { color: "black" }]}>
+                Profile
+              </Text>
 
-            <View style={styles.accountCard}>
-              <Text style={styles.accountHeader}>Account</Text>
-              <View style={styles.accountInfo}>
-                <Text style={styles.accountText}>Username: {username}</Text>
-                <Text style={styles.accountText}>Email: {email}</Text>
+              <View style={styles.accountCard}>
+                <Text style={styles.accountHeader}>Account</Text>
+                <View style={styles.accountInfo}>
+                  <Text style={styles.accountText}>Username: {username}</Text>
+                  <Text style={styles.accountText}>Email: {email}</Text>
+                </View>
               </View>
-            </View>
 
-            <View style={styles.statsCard}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{bundleCount}</Text>
-                <Text style={styles.statLabel}>Bundles</Text>
+              <View style={styles.statsCard}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{bundleCount}</Text>
+                  <Text style={styles.statLabel}>Bundles</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{avgRating.toFixed(1)}</Text>
+                  <Text style={styles.statLabel}>Avg Stars</Text>
+                </View>
               </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{avgRating.toFixed(1)}</Text>
-                <Text style={styles.statLabel}>Avg Stars</Text>
-              </View>
-            </View>
 
-            <TouchableOpacity
-              style={styles.logoutButton}
-              onPress={handleLogout}
-            >
-              <Text style={styles.logoutButtonText}>Log Out</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={handleLogout}
+              >
+                <Text style={styles.logoutButtonText}>Log Out</Text>
+              </TouchableOpacity>
 
-            <Text style={[GlobalStyles.header, styles.historyTitle]}>
-              Bundle History
-            </Text>
-            <View style={GlobalStyles.divider} />
+              <Text style={[GlobalStyles.header, styles.historyTitle]}>
+                Bundle History
+              </Text>
+              <View style={GlobalStyles.divider} />
 
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
               {bundles.map((b) => (
                 <View key={b.id} style={styles.bundleCard}>
                   <View style={styles.bundleHeader}>
@@ -134,8 +126,8 @@ export default function Profile() {
                   </View>
                 </View>
               ))}
-            </ScrollView>
-          </View>
+            </View>
+          </ScrollView>
         </SafeAreaView>
       </SafeAreaProvider>
     </ImageBackground>
@@ -145,11 +137,14 @@ export default function Profile() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     padding: 16,
   },
   wrapper: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
   },
   accountCard: {
     backgroundColor: "#F5F5F5",
@@ -204,7 +199,6 @@ const styles = StyleSheet.create({
     fontWeight: "normal",
     marginBottom: 8,
   },
-  scrollContainer: { paddingBottom: 20 },
   bundleCard: {
     backgroundColor: "#F5F5F5",
     borderRadius: 10,

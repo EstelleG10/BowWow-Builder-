@@ -10,6 +10,7 @@ import {
   StatusBar,
   Dimensions,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -33,12 +34,18 @@ const StarRating = ({ rating, onChange }) => (
 
 const Home = () => {
   const [bundles, setBundles] = useState<any[]>([]);
-  const [error, setError] = useState(false);
   const [ratings, setRatings] = useState<{ [mealId: number]: string }>({});
   const [comments, setComments] = useState<{ [mealId: number]: any[] }>({});
-  const [loading, setLoading] = useState(false);
   const [showNoBundlesMessage, setShowNoBundlesMessage] = useState(false);
   const [username, setUsername] = useState('');
+
+  const fetchUsername = async () => {
+    const token = await AsyncStorage.getItem("token");
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      setUsername(payload.username);
+    }
+  };
 
   const fetchComments = async (mealId: number) => {
     try {
@@ -50,13 +57,18 @@ const Home = () => {
     }
   };
 
-  const fetchUsername = async () => {
-    const token = await AsyncStorage.getItem("token");
-    if (token) {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      setUsername(payload.username);
+  const fetchBundles = useCallback(async () => {
+    try {
+      const response = await fetch(Constants.IP_ADDRESS + 'api/meals');
+      let data = await response.json();
+      data.sort((a, b) => (b.avg_rating ?? 0) - (a.avg_rating ?? 0));
+      setBundles(data);
+      setShowNoBundlesMessage(data.length === 0);
+      data.forEach((meal: any) => fetchComments(meal.id));
+    } catch (err) {
+      console.error('Error fetching meals:', err);
     }
-  };
+  }, []);
 
   const submitRating = async (mealId: number, rating: string) => {
     try {
@@ -69,9 +81,7 @@ const Home = () => {
         },
         body: JSON.stringify({ meal_id: mealId, rating: parseInt(rating) }),
       });
-
       const data = await res.json();
-
       if (res.status === 400 && data.error === "You have already rated this meal!") {
         alert("You already rated this meal!");
       } else if (res.ok) {
@@ -81,61 +91,50 @@ const Home = () => {
         alert("Something went wrong!");
       }
     } catch (error) {
-      console.error("Error submitting rating:", error);
       alert("Network error! Please try again later.");
     }
   };
-
-  const fetchBundles = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(Constants.IP_ADDRESS + 'api/meals');
-      let data = await response.json();
-
-      data.sort((a, b) => {
-        const ratingA = a.avg_rating ?? 0;
-        const ratingB = b.avg_rating ?? 0;
-        return ratingB - ratingA;
-      });
-
-      setBundles(data);
-      setShowNoBundlesMessage(data.length === 0);
-      data.forEach((meal: any) => fetchComments(meal.id));
-    } catch (err) {
-      console.error('Error fetching meals:', err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   const handleDeleteComment = async (commentId: number, mealId: number) => {
     try {
       const res = await fetch(Constants.IP_ADDRESS + `api/comments/${commentId}`, {
         method: 'DELETE',
       });
-
       if (res.ok) {
         fetchComments(mealId);
       } else {
         alert('Failed to delete comment.');
       }
-    } catch (err) {
-      console.error('Error deleting comment:', err);
+    } catch {
       alert('An error occurred.');
     }
   };
 
+  const handleDeleteBundle = async (bundleId: number) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const res = await fetch(Constants.IP_ADDRESS + `api/meals/${bundleId}`, {
+        method: 'DELETE',
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        await fetchBundles();
+      } else {
+        alert("Failed to delete bundle.");
+      }
+    } catch (err) {
+      alert("An error occurred while deleting.");
+    }
+  };
+
   useEffect(() => {
-    fetchBundles();
     fetchUsername();
+    fetchBundles();
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchBundles();
-    }, [fetchBundles])
-  );
+  useFocusEffect(useCallback(() => { fetchBundles(); }, [fetchBundles]));
 
   return (
     <ImageBackground source={require('../../assets/images/dark_blue.jpg')} style={styles.background}>
@@ -154,12 +153,20 @@ const Home = () => {
 
             {bundles.map((bundle, idx) => (
               <View key={idx} style={styles.bundleBox}>
-                <Text style={styles.bundleTitle}>{bundle.title || bundle.name}</Text>
-                <Text style={styles.posterText}>Posted by: {bundle.poster}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingRight: 20 }}>
+                  <View>
+                    <Text style={styles.bundleTitle}>{bundle.title || bundle.name}</Text>
+                    <Text style={styles.posterText}>Posted by: {bundle.poster}</Text>
+                  </View>
+                  {bundle.poster === username && (
+                    <Pressable onPress={() => handleDeleteBundle(bundle.id)}>
+                      <Image source={require('../../assets/images/trash.png')} style={{ width: 20, height: 20 }} />
+                    </Pressable>
+                  )}
+                </View>
+
                 {bundle.avg_rating !== undefined && (
-                  <Text style={styles.ratingDisplay}>
-                    Average Rating: {bundle.avg_rating}
-                  </Text>
+                  <Text style={styles.ratingDisplay}>Average Rating: {bundle.avg_rating}</Text>
                 )}
 
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
@@ -167,59 +174,48 @@ const Home = () => {
                     rating={parseInt(ratings[bundle.id]) || 0}
                     onChange={(val) => setRatings((prev) => ({ ...prev, [bundle.id]: String(val) }))}
                   />
-                  <Pressable
-                    style={styles.submitButton}
-                    onPress={() => {
-                      const rating = ratings[bundle.id];
-                      if (rating && /^[1-5]$/.test(rating)) {
-                        submitRating(bundle.id, rating);
-                      } else {
-                        alert('Please enter a number from 1 to 5');
-                      }
-                    }}
-                  >
+                  <Pressable style={styles.submitButton} onPress={() => {
+                    const rating = ratings[bundle.id];
+                    if (rating && /^[1-5]$/.test(rating)) {
+                      submitRating(bundle.id, rating);
+                    } else {
+                      alert('Please enter a number from 1 to 5');
+                    }
+                  }}>
                     <Text style={styles.submitText}>Submit</Text>
                   </Pressable>
                 </View>
 
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {bundle.items.map((item: any, i: number) => {
-                    const trimmedRoute = item.img_route?.trim();
-                    return (
-                      <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
-                        {trimmedRoute ? (
-                          <Image
-                            source={{ uri: Constants.IP_ADDRESS + trimmedRoute }}
-                            style={styles.bundleImage}
-                            resizeMode="contain"
-                          />
-                        ) : (
-                          <View style={[styles.bundleImage, { backgroundColor: '#999' }]} />
-                        )}
-                        <Text style={styles.itemText}>{item.name}</Text>
-                      </View>
-                    );
-                  })}
+                  {bundle.items.map((item: any, i: number) => (
+                    <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
+                      {item.img_route?.trim() ? (
+                        <Image
+                          source={{ uri: Constants.IP_ADDRESS + item.img_route.trim() }}
+                          style={styles.bundleImage}
+                          resizeMode="contain"
+                        />
+                      ) : <View style={[styles.bundleImage, { backgroundColor: '#999' }]} />}
+                      <Text style={styles.itemText}>{item.name}</Text>
+                    </View>
+                  ))}
                 </ScrollView>
 
                 {comments[bundle.id]?.length > 0 && (
                   <View style={styles.commentSection}>
                     <Text style={styles.commentHeader}>What people are saying:</Text>
                     {comments[bundle.id].map((c, i) => (
-                    <View key={i} style={[styles.commentBox, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.commentUser}>{c.user}</Text>
-                        <Text style={styles.commentText}>{c.text}</Text>
+                      <View key={i} style={[styles.commentBox, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.commentUser}>{c.user}</Text>
+                          <Text style={styles.commentText}>{c.text}</Text>
+                        </View>
+                        {c.user === username && (
+                          <Pressable onPress={() => handleDeleteComment(c.id, bundle.id)} style={{ paddingLeft: 10 }}>
+                            <Image source={require('../../assets/images/trash.png')} style={{ width: 20, height: 20 }} />
+                          </Pressable>
+                        )}
                       </View>
-                      {c.user === username && (
-                        <Pressable onPress={() => handleDeleteComment(c.id, bundle.id)} style={{ paddingLeft: 10 }}>
-                          <Image
-                            source={require('../../assets/images/trash.png')}
-                            style={{ width: 20, height: 20 }}
-                          />
-                        </Pressable>
-                      )}
-                    </View>
                     ))}
                   </View>
                 )}
@@ -272,131 +268,95 @@ const Home = () => {
   );
 };
 
-// make sure the width matches user phone
 const screenWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: StatusBar.currentHeight,
+    paddingTop: StatusBar.currentHeight
   },
   background: {
     flex: 1,
     width: '100%',
-    height: '100%',
+    height: '100%'
   },
   textBox: {
-    padding: 20,
+    padding: 20
   },
   header: {
     textAlign: 'center',
     fontSize: 48,
     fontWeight: 'bold',
-    color: 'white',
+    color: 'white'
   },
   textHeader: {
     textAlign: 'center',
     fontSize: 20,
     color: 'white',
-    paddingTop: 10,
+    paddingTop: 10
   },
   bundleBox: {
     marginTop: 20,
-    paddingLeft: 20,
+    paddingLeft: 20
   },
   bundleTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 10,
+    color: 'white'
   },
-  ratingInput: {
-    backgroundColor: '#fff',
-    color: '#000',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    width: 80,
+  posterText: {
+    fontSize: 14,
+    color: '#ccc',
+    fontStyle: 'italic'
+  },
+  ratingDisplay: {
+    fontSize: 16,
+    color: '#FFD700',
+    fontWeight: '600',
+    marginBottom: 8
   },
   submitButton: {
     marginLeft: 10,
     backgroundColor: '#FFD700',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: 6
   },
   submitText: {
     fontWeight: 'bold',
-    color: '#000',
+    color: '#000'
   },
   bundleImage: {
     width: screenWidth * 0.6,
     height: 180,
     marginRight: 15,
     borderRadius: 10,
-    backgroundColor: 'white',
+    backgroundColor: 'white'
   },
   itemText: {
     color: 'white',
     fontWeight: 'bold',
     textAlign: 'center',
     marginTop: 5,
-    width: screenWidth * 0.6,
-  },
-  ratingDisplay: {
-    fontSize: 16,
-    color: '#FFD700',
-    fontWeight: '600',
-    marginBottom: 8,
+    width: screenWidth * 0.6
   },
   commentSection: {
     marginTop: 10,
-    paddingRight: 20,
+    paddingRight: 20
   },
   commentHeader: {
     color: '#fff',
     fontWeight: 'bold',
-    marginBottom: 6,
+    marginBottom: 6
   },
   commentBox: {
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     padding: 10,
     borderRadius: 10,
     marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
   },
-
-  commentUser: {
-    color: '#FFD700',
-    fontWeight: 'bold',
-    fontSize: 14,
-    marginBottom: 4,
-  },
-
-  commentText: {
-    color: '#EEE',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-
-  deleteButton: {
-    marginTop: 8,
-    alignSelf: 'flex-end',
-    backgroundColor: '#aa2e2e',
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-  },
-
-
-  deleteText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
+  commentUser: { color: '#FFD700', fontWeight: 'bold', fontSize: 14, marginBottom: 4 },
+  commentText: { color: '#EEE', fontSize: 14, lineHeight: 20 },
   commentInputSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -404,22 +364,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 20,
   },
-
-  noBundlesMessage: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: 'white',
-    paddingTop: 10,
-    fontStyle: 'italic',
-  },
-
-  posterText: {
-    fontSize: 14,
-    color: '#ccc',
-    marginBottom: 4,
-    fontStyle: 'italic',
-  },
-
   commentInput: {
     flex: 1,
     height: 40,
@@ -432,8 +376,13 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     marginRight: 10,
   },
-
-
+  noBundlesMessage: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: 'white',
+    paddingTop: 10,
+    fontStyle: 'italic',
+  },
 });
 
 export default Home;

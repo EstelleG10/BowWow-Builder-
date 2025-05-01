@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 import jwt
 import os
+import traceback
 from datetime import timedelta, datetime, timezone
 from typing import Dict, List
 ## from constants import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, INVALID_SALT
@@ -312,6 +313,44 @@ def create_meal():
     finally:
         cur.close()
         conn.close()
+
+@app.route("/api/meals/<int:meal_id>", methods=["DELETE"])
+def delete_meal(meal_id):
+    user_id = get_current_user_id()
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # Check if this user owns the meal
+    cur.execute("SELECT user_id FROM meals WHERE id = %s;", (meal_id,))
+    result = cur.fetchone()
+
+    if not result:
+        cur.close()
+        conn.close()
+        return jsonify({"error": "Meal not found"}), 404
+
+    owner_id = result[0]
+    if owner_id != user_id:
+        cur.close()
+        conn.close()
+        return jsonify({"error": "Forbidden"}), 403
+
+    try:
+        cur.execute("DELETE FROM meals WHERE id = %s;", (meal_id,))
+        conn.commit()
+        return jsonify({"message": "Meal deleted"}), 200
+    except Exception as e:
+        print("Error deleting meal:", e)
+        traceback.print_exc()  
+        conn.rollback()
+        return jsonify({"error": "Server error"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
 
 # =============================== PROFILE ===============================
 @app.route("/api/profile", methods=["GET"])
