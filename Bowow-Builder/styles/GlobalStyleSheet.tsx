@@ -11,6 +11,7 @@ const GlobalStyles = StyleSheet.create({
     fontSize: 50,
     color: "white",
     fontFamily: "Georgia",
+    textAlign: "left",
   },
   header: {
     fontSize: 24,

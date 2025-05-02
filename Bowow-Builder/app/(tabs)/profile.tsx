@@ -11,6 +11,7 @@ import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Constants from "../../constants";
 import GlobalStyles from "../../styles/GlobalStyleSheet";
+import { FontAwesome } from '@expo/vector-icons';
 import { useFocusEffect, router } from "expo-router";
 
 type Bundle = {
@@ -68,15 +69,22 @@ export default function Profile() {
         <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
           <ScrollView contentContainerStyle={styles.scrollContent}>
             <View style={styles.wrapper}>
-              <Text style={[GlobalStyles.title, { color: "white" }]}>
+              <Text style={[GlobalStyles.title, { textAlign: "center" }]}>
                 Profile
               </Text>
 
               <View style={styles.accountCard}>
-                <Text style={styles.accountHeader}>Account</Text>
-                <View style={styles.accountInfo}>
-                  <Text style={styles.accountText}>Username: {username}</Text>
-                  <Text style={styles.accountText}>Email: {email}</Text>
+                <View style={styles.accountHeaderRow}>
+                  <FontAwesome name="user-circle" size={24} color="#002F6A" style={{ marginRight: 8 }} />
+                  <Text style={styles.accountHeader}>Account</Text>
+                </View>
+                <View style={styles.accountInfoRow}>
+                  <Text style={styles.accountLabel}>Username:</Text>
+                  <Text style={styles.accountValue}>{username}</Text>
+                </View>
+                <View style={styles.accountInfoRow}>
+                  <Text style={styles.accountLabel}>Email:</Text>
+                  <Text style={styles.accountValue}>{email}</Text>
                 </View>
               </View>
 
@@ -144,23 +152,49 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     flex: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
   },
-  accountCard: {
-    backgroundColor: "#F5F5F5",
-    borderRadius: 10,
-    padding: 15,
-    marginVertical: 20,
+accountCard: {
+  backgroundColor: "#fff",
+  borderRadius: 12,
+  padding: 12,
+  marginVertical: 12,
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.08,
+  shadowRadius: 4,
+  elevation: 2,
+},
+accountHeaderRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  marginBottom: 8,
+},
+accountHeader: {
+  fontSize: 18,
+  fontWeight: "600",
+  color: "#002F6A",
   },
-  accountHeader: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 10,
-  },
-  accountInfo: {
-    marginTop: 5,
-  },
+
+accountInfo: {
+  gap: 6,
+},
+accountInfoRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  marginTop: 6,
+},
+accountLabel: {
+  fontSize: 14,
+  fontWeight: "500",
+  color: "#666",
+  marginRight: 4,
+},
+accountValue: {
+  fontSize: 15,
+  fontWeight: "bold",
+  color: "#333",
+},
   accountText: {
     fontWeight: 'bold',
     fontSize: 16,
@@ -174,7 +208,9 @@ const styles = StyleSheet.create({
   },
   statsCard: {
     backgroundColor: "#1a88db",
-    borderRadius: 10,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 3,
+    borderRadius: 8,
     padding: 15,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -195,7 +231,9 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
   logoutButton: {
-    backgroundColor: "#083354",
+    backgroundColor: "#063E68",
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: "center",

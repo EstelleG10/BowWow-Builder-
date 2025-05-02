@@ -40,6 +40,7 @@ const Home = () => {
   const [comments, setComments] = useState<{ [mealId: number]: any[] }>({});
   const [showNoBundlesMessage, setShowNoBundlesMessage] = useState(false);
   const [username, setUsername] = useState('');
+  const [showAllComments, setShowAllComments] = useState<{ [mealId: number]: boolean }>({});
   const navigation = useNavigation();
 
 
@@ -152,7 +153,7 @@ const Home = () => {
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
             <View style={styles.textBox}>
               <Text style={styles.header}>Bow Wow Builder</Text>
-              <Text style={styles.textHeader}>The Wows of the Week</Text>
+                <Text style={styles.textHeader}>The Wows of the Week</Text>
               {showNoBundlesMessage && (
                 <Text style={styles.noBundlesMessage}>
                   You haven’t created any bundles yet! Build your first one!
@@ -161,7 +162,8 @@ const Home = () => {
             </View>
 
             {bundles.map((bundle, idx) => (
-              <View key={idx} style={styles.bundleBox}>
+              <View key={idx} style={styles.bundleWrapper}>
+                <View style={styles.bundleBox}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingRight: 20 }}>
                   <View>
                     <Text style={styles.bundleTitle}>{bundle.title || bundle.name}</Text>
@@ -210,24 +212,40 @@ const Home = () => {
                   ))}
                 </ScrollView>
 
-                {comments[bundle.id]?.length > 0 && (
-                  <View style={styles.commentSection}>
-                    <Text style={styles.commentHeader}>What people are saying:</Text>
-                    {comments[bundle.id].map((c, i) => (
-                      <View key={i} style={[styles.commentBox, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.commentUser}>{c.user}</Text>
-                          <Text style={styles.commentText}>{c.text}</Text>
-                        </View>
-                        {c.user === username && (
-                          <Pressable onPress={() => handleDeleteComment(c.id, bundle.id)} style={{ paddingLeft: 10 }}>
-                            <Image source={require('../../assets/images/trash.png')} style={{ width: 20, height: 20 }} />
-                          </Pressable>
-                        )}
-                      </View>
-                    ))}
-                  </View>
-                )}
+{comments[bundle.id]?.length > 0 && (
+  <View style={styles.commentSection}>
+    <Text style={styles.commentHeader}>What people are saying:</Text>
+    {(showAllComments[bundle.id]
+      ? comments[bundle.id]
+      : comments[bundle.id].slice(0, 2)
+    ).map((c, i) => (
+      <View key={i} style={styles.commentBox}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.commentUser}>{c.user}</Text>
+            <Text style={styles.commentText}>{c.text}</Text>
+          </View>
+          {c.user === username && (
+            <Pressable onPress={() => handleDeleteComment(c.id, bundle.id)} style={styles.trashIcon}>
+              <Image source={require('../../assets/images/trash.png')} style={{ width: 18, height: 18 }} />
+            </Pressable>
+          )}
+        </View>
+      </View>
+    ))}
+    {comments[bundle.id].length > 2 && (
+      <Pressable onPress={() => setShowAllComments(prev => ({
+        ...prev,
+        [bundle.id]: !prev[bundle.id]
+      }))}>
+        <Text style={{ color: '#FFD700', fontSize: 14, fontWeight: '600' }}>
+          {showAllComments[bundle.id] ? 'Hide comments' : 'View all comments'}
+        </Text>
+      </Pressable>
+    )}
+  </View>
+)}
+
 
                 <View style={styles.commentInputSection}>
                   <TextInput
@@ -267,7 +285,8 @@ const Home = () => {
                   >
                     <Text style={styles.submitText}>Post</Text>
                   </Pressable>
-                </View>
+                  </View>
+                  </View>
               </View>
             ))}
             </ScrollView>
@@ -291,11 +310,14 @@ const styles = StyleSheet.create({
     height: '100%'
   },
   textBox: {
-    padding: 20
+    paddingTop: 40,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
   },
   header: {
     textAlign: 'center',
-    fontSize: 48,
+    fontSize: 45,
+    marginBottom: 4,
     fontWeight: 'bold',
     color: 'white',
     fontFamily: 'Georgia',
@@ -304,12 +326,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 20,
     color: 'white',
+    fontFamily: 'Georgia',
+    fontWeight: 'bold',
+    fontStyle: 'italic',
     paddingTop: 10
   },
   bundleBox: {
-    marginTop: 20,
-    paddingLeft: 20
+   // marginTop: 20,
+    //paddingLeft: 20
   },
+  bundleWrapper: {
+  backgroundColor: 'rgba(255, 255, 255, .1)',
+  borderRadius: 16,
+  marginHorizontal: 16,
+  marginTop: 20,
+  padding: 12,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+},
+
   bundleTitle: {
     fontSize: 22,
     fontWeight: 'bold',
@@ -352,28 +390,53 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.6
   },
   commentSection: {
-    marginTop: 10,
-    paddingRight: 20
+    // marginTop: 10,
+    // paddingRight: 20
   },
   commentHeader: {
     color: '#fff',
     fontWeight: 'bold',
-    marginBottom: 6
+    marginBottom: 6,
+    marginTop: 10
   },
-  commentBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+commentBox: {
+  //backgroundColor: 'rgba(255, 255, 255, 0.12)',
+  //backgroundColor: '#f0f0f0',
+  backgroundColor: '#fff',
+  borderColor: '#ccc',
+  borderWidth: 2,
+  borderRadius: 8,
+  padding: 10,
+  marginBottom: 10,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 2,
   },
-  commentUser: { color: '#FFD700', fontWeight: 'bold', fontSize: 14, marginBottom: 4 },
-  commentText: { color: '#EEE', fontSize: 14, lineHeight: 20 },
+
+trashIcon: {
+  paddingLeft: 10,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+  commentUser: {
+    color: '#FFD700',
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginBottom: 4
+  },
+  commentText: {
+    color: 'black',
+    fontSize: 14,
+    lineHeight: 20
+  },
   commentInputSection: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
     marginBottom: 20,
-    paddingHorizontal: 20,
+    //paddingHorizontal: 20,
   },
   commentInput: {
     flex: 1,

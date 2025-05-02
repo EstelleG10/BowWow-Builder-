@@ -395,10 +395,12 @@ totalRow: {
     marginBottom: 10,
   },
   filterButton: {
-    backgroundColor: "#1c37b0",
+    backgroundColor: "#063E68",
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 10,
     marginBottom: 10,
   },
   buttonText: {

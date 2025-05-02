@@ -78,10 +78,7 @@ export default function CartScreen() {
       if (response.ok) {
         triggerToast();
         setMealName("");
-
-        // clear the cart page
         clearCart();
-        setMealName('');
       } else {
         Alert.alert("Error saving meal.");
       }
@@ -102,7 +99,7 @@ export default function CartScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.cartHeaderRow}>
-            <Text style={styles.headerCentered}>Cart</Text>
+            <Text style={[GlobalStyles.title, { marginTop: 10 }]}>Cart</Text>
             <View style={styles.cartIconWrapper}>
               <Image
                 source={require("../../assets/images/cart_white.png")}
@@ -151,16 +148,15 @@ export default function CartScreen() {
             onChangeText={setMealName}
           />
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSaveMeal}>
-            <Text style={styles.saveButtonText}>Save and Post Meal!!</Text>
+          <TouchableOpacity style={[styles.button, styles.greenButton]} onPress={handleSaveMeal}>
+            <Text style={styles.buttonText}>Save and Post Meal!!</Text>
           </TouchableOpacity>
 
           {cart.length > 0 && (
-            <TouchableOpacity style={styles.clearButton} onPress={clearCart}>
-              <Text style={styles.clearButtonText}>Clear Cart</Text>
+            <TouchableOpacity style={[styles.button, styles.redButton]} onPress={clearCart}>
+              <Text style={styles.buttonText}>Clear Cart</Text>
             </TouchableOpacity>
           )}
-
         </ScrollView>
 
         {showToast && (
@@ -183,30 +179,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-container: {
-  flexGrow: 1,
-  justifyContent: "flex-start",
-  alignItems: "center",
-  padding: 20,
-  paddingTop: 20,
-},
-  header: {
-    fontSize: 24,
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 0,
+  scrollWrapper: {
+    flex: 1,
+    width: "100%",
+  },
+  container: {
+    flexGrow: 1,
+    justifyContent: "flex-start",
+    alignItems: "center",
+    padding: 20,
+    paddingTop: 20,
   },
   totalPrice: {
     fontSize: 20,
     color: "white",
     fontWeight: "bold",
+    marginTop: 10,
     marginBottom: 5,
   },
-  scrollWrapper: {
-  flex: 1,
-  width: "100%",
-},
   underText: {
     color: "lightgreen",
     fontSize: 18,
@@ -230,37 +220,14 @@ container: {
     alignItems: "center",
     paddingHorizontal: 15,
   },
-  itemText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
   itemTextWrapper: {
     flex: 1,
     justifyContent: "center",
   },
-  itemPrice: {
+  itemText: {
     fontSize: 16,
-    textAlign: "center",
-    marginTop: 4,
-  },
-  removeButton: {
-    color: "red",
-    marginTop: 5,
-  },
-  clearButton: {
-    backgroundColor: "#b00020",
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 10,
-    marginBottom: 20,
-    width: "100%",
-    alignItems: "center",
-  },
-  clearButtonText: {
-    color: "white",
     fontWeight: "bold",
-    fontSize: 16,
+    textAlign: "center",
   },
   input: {
     width: "100%",
@@ -271,25 +238,26 @@ container: {
     marginTop: 10,
     borderRadius: 10,
   },
-  headerCentered: {
-  position: "absolute",
-  left: 0,
-  right: 0,
-  marginTop: 30,
-  marginBottom: 10,
-  fontSize: 50,
-  color: "white",
-  fontFamily: "Georgia",
-},
-  saveButton: {
-    backgroundColor: "#4CAF50",
+  button: {
     padding: 12,
     borderRadius: 10,
     marginTop: 10,
     width: "100%",
     alignItems: "center",
   },
-  saveButtonText: {
+  greenButton: {
+    backgroundColor: "#063E68",
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+  },
+  redButton: {
+    backgroundColor: "#1a88db",
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 3,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  buttonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
@@ -297,30 +265,28 @@ container: {
   trashWrapper: {
     paddingLeft: 10,
   },
-
   trashIcon: {
     width: 24,
     height: 24,
   },
-cartHeaderRow: {
-  width: "100%",
-  height: 60,
-  justifyContent: "center", 
-  alignItems: "center",
-  position: "relative", 
-  marginTop: 30,
-  marginBottom: 10,
-},
-cartIconWrapper: {
-  position: "absolute",
-  right: 2,
-  top: 10,
-},
+  cartHeaderRow: {
+    width: "100%",
+    height: 60,
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+    marginTop: 40,
+    marginBottom: 10,
+  },
+  cartIconWrapper: {
+    position: "absolute",
+    right: 2,
+    top: -10,
+  },
   cartIcon: {
     width: 40,
     height: 40,
   },
-
   cartBadge: {
     position: "absolute",
     top: -5,
@@ -330,7 +296,6 @@ cartIconWrapper: {
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
-
   badgeText: {
     color: "white",
     fontWeight: "bold",
