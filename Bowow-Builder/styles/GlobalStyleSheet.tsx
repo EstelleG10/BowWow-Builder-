@@ -10,16 +10,18 @@ const GlobalStyles = StyleSheet.create({
   title: {
     fontSize: 50,
     color: "white",
+    fontFamily: "Georgia",
   },
   header: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
-    color: "black",
+    color: "white",
+    fontFamily: "Georgia",
   },
   subHeader: {
     lineHeight: 24,
-    color: "black",
+    color: "white",
     marginTop: 5,
     fontSize: 17,
   },

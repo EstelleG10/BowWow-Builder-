@@ -61,14 +61,14 @@ export default function Profile() {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/background_white.jpg")}
+      source={require("../../assets/images/dark_blue.jpg")}
       style={styles.background}
     >
       <SafeAreaProvider>
         <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
           <ScrollView contentContainerStyle={styles.scrollContent}>
             <View style={styles.wrapper}>
-              <Text style={[GlobalStyles.title, { color: "black" }]}>
+              <Text style={[GlobalStyles.title, { color: "white" }]}>
                 Profile
               </Text>
 
@@ -162,6 +162,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   accountText: {
+    fontWeight: 'bold',
     fontSize: 16,
     color: "#333",
     marginBottom: 5,
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   statsCard: {
-    backgroundColor: "#002F6A",
+    backgroundColor: "#1a88db",
     borderRadius: 10,
     padding: 15,
     flexDirection: "row",
@@ -181,10 +182,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   statItem: { alignItems: "center" },
-  statValue: { fontSize: 24, fontWeight: "bold", color: "white" },
-  statLabel: { fontSize: 14, color: "white", marginTop: 4 },
+  statValue: {
+    fontSize: 24,
+    fontWeight: "bold",
+    
+    color: "white"
+  },
+  statLabel: {
+    fontSize: 14,
+    color: "white",
+    fontWeight: "bold",
+    marginTop: 4
+  },
   logoutButton: {
-    backgroundColor: "#B00020",
+    backgroundColor: "#083354",
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: "center",

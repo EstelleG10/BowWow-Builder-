@@ -114,7 +114,7 @@ export default function Category() {
     >
       {/* Fixed Header */}
       <View style={styles.fixedHeader}>
-        <Text style={styles.header}>Shop</Text>
+        <Text style={styles.header}></Text>
 
         <TouchableOpacity
           style={styles.cartIconWrapper}

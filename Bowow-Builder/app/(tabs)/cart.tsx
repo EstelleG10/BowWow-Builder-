@@ -12,6 +12,7 @@ import {
   Animated,
 } from "react-native";
 import { useCart } from "../cartcontext";
+import GlobalStyles from "../../styles/GlobalStyleSheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Constants from "../../constants";
 
@@ -274,10 +275,11 @@ container: {
   position: "absolute",
   left: 0,
   right: 0,
-  textAlign: "center",
-  fontSize: 24,
+  marginTop: 30,
+  marginBottom: 10,
+  fontSize: 50,
   color: "white",
-  fontWeight: "bold",
+  fontFamily: "Georgia",
 },
   saveButton: {
     backgroundColor: "#4CAF50",

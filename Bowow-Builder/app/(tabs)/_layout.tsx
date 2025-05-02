@@ -15,7 +15,7 @@ const Layout = () => {
         tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color={color} />
         }} />
       <Tabs.Screen name="shop" options={{ 
-        title: 'Food',
+        title: 'Shop',
         tabBarIcon: ({ color }) => <FontAwesome size={28} name="shopping-bag" color={color} />
          }} />
       <Tabs.Screen name="cart" options={{ 

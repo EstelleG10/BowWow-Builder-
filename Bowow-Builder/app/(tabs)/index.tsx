@@ -297,7 +297,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 48,
     fontWeight: 'bold',
-    color: 'white'
+    color: 'white',
+    fontFamily: 'Georgia',
   },
   textHeader: {
     textAlign: 'center',
