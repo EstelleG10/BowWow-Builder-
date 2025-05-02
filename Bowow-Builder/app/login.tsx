@@ -8,116 +8,175 @@ import {
   StyleSheet,
   ImageBackground,
   StatusBar,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
+  SafeAreaView,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import GlobalStyles from "../styles/GlobalStyleSheet";
-import * as Constants from "../constants";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Constants from '../constants';
 
-const API_URL = Constants.IP_ADDRESS + "login";
+const API_URL = Constants.IP_ADDRESS + 'login';
 
-const LoginScreen = () => {
+export default function LoginScreen() {
   const router = useRouter();
-  const [username, setname] = useState("");
-  const [password, setpass] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const submit = async () => {
-    if (username === "" || password === "") {
-      Alert.alert("Error", "Please enter the values");
-    } else {
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username: username,
-            password: password,
-          }),
-        });
-        const data = await response.json();
-        if (response.status === 200 && data.token) {
-          const { token } = data;
-          await AsyncStorage.setItem("token", token);
-          Alert.alert("Success", "Username and password are entered");
-          router.replace("/(tabs)");
-        } else {
-          Alert.alert("Login failed", "Invalid username or password");
-        }
-      } catch (error) {
-        Alert.alert("Error", "An error occurred. Please try again.");
+    if (!username || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json();
+      if (response.status === 200 && data.token) {
+        await AsyncStorage.setItem('token', data.token);
+        router.replace('/(tabs)');
+      } else {
+        Alert.alert('Login failed', 'Invalid username or password');
       }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'An error occurred. Please try again.');
     }
   };
 
   return (
-    <SafeAreaProvider style={{ flex: 1 }}>
+    <ImageBackground
+      source={require('../assets/images/gradblue.jpg')}
+      style={styles.background}
+      resizeMode="cover"
+    >
       <StatusBar hidden />
-      <ImageBackground
-        source={require("../assets/images/login.png")}
-        style={{ flex: 1 }}
-        resizeMode="cover"
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={{ flex: 1 }}
-          >
-            {/* <ScrollView
-              contentContainerStyle={{ flexGrow: 1 }}
-              keyboardShouldPersistTaps="handled"
-            > */}
-              <SafeAreaView
-                style={[
-                  { flex: 1.5, paddingTop: 80 },
-                  GlobalStyles.container,
-                ]}
-              >
-                <Text style={[GlobalStyles.title, { color: "black", textAlign: "center" }]}>
-                  Login
-                </Text>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.formWrapper}>
+          <Text style={styles.title}>Login</Text>
 
-                <TextInput
-                  style={GlobalStyles.input}
-                  placeholder="username"
-                  placeholderTextColor="#000080"
-                  value={username}
-                  onChangeText={setname}
-                />
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            placeholderTextColor="#DDD"
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+          />
 
-                <TextInput
-                  style={GlobalStyles.input}
-                  placeholder="password"
-                  placeholderTextColor="#000080"
-                  value={password}
-                  onChangeText={setpass}
-                  secureTextEntry
-                />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              placeholder="Password"
+              placeholderTextColor="#DDD"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.toggleButton}
+            >
+              <Text style={styles.toggleText}>
+                {showPassword ? 'Hide' : 'Show'}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-                <TouchableOpacity style={GlobalStyles.button} onPress={submit}>
-                  <Text style={GlobalStyles.buttonText}>Login</Text>
-                </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={submit}>
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
 
-                <Link href="/signup" style={{ marginTop: 5 }}>
-                  <Text style={[GlobalStyles.reminder, { textAlign: "center" }]}>
-                    Don't have an account? Register Now
-                  </Text>
-                </Link>
-              </SafeAreaView>
-            {/* </ScrollView> */}
-          </KeyboardAvoidingView>
-        </TouchableWithoutFeedback>
-      </ImageBackground>
-    </SafeAreaProvider>
+          <Link href="/signup" style={styles.link}>
+            <Text style={styles.linkText}>
+              Don't have an account? Register Now
+            </Text>
+          </Link>
+        </View>
+      </SafeAreaView>
+    </ImageBackground>
   );
-};
+}
 
-export default LoginScreen;
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  safeArea: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  formWrapper: {
+    width: '90%',
+    backgroundColor: 'rgba(0, 34, 68, 0.9)',
+    padding: 24,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#66A3FF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  title: {
+    fontSize: 32,
+    color: '#EEFFFF',
+    marginBottom: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  input: {
+    height: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    color: '#EEFFFF',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#AAD4FF',
+    fontSize: 16,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  toggleButton: {
+    marginLeft: 12,
+    padding: 6,
+  },
+  toggleText: {
+    color: '#AAD4FF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  button: {
+    backgroundColor: '#005BBB',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  link: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  linkText: {
+    color: '#EEFFFF',
+    fontSize: 14,
+  },
+});

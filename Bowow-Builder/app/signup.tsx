@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Linking,
   View,
   Text,
   TouchableOpacity,
@@ -12,107 +11,182 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Link } from "expo-router";
-import GlobalStyles from "../styles/GlobalStyleSheet";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Constants from '../constants';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 const API_URL = Constants.IP_ADDRESS + 'signup';
-const SignupScreen = () => {
-  const [email, setemail] = useState('');
-  const [username, setname] = useState('');
-  const [password, setpass] = useState('');
 
+export default function SignupScreen() {
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const submit = async () => {
-    if (username == '' || password == '' || email == '') {
-      Alert.alert('Error', 'Please enter the values');
-    } else {
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', },
-          body: JSON.stringify({ email: email, username: username, password: password, }),
-        });
-        console.log("signup ")
-        const data = await response.text();
-
-        console.log('Response:', data);
-        if (response.status === 201) {
-          Alert.alert('Success', 'User registered successfully!');
-          await AsyncStorage.setItem('user', JSON.stringify(data));
-          console.log('User Info:', { email, username, password });
-          Alert.alert('Success', 'Username and password are entered');
-          console.log('Username', username);
-          console.log('Password', password);
-          console.log('Email: ', email);
-        }
-      }
-      catch (error) {
-        console.error("Request error:", error); // Log the error from the catch block
-        Alert.alert("Error", "An error occurred. Please try again.");
-      }
+    if (!email || !username || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
     }
-  }
-
-
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, username, password }),
+      });
+      const data = await response.text();
+      if (response.status === 201) {
+        Alert.alert('Success', 'User registered successfully!');
+        await AsyncStorage.setItem('user', JSON.stringify(data));
+      } else {
+        Alert.alert('Error', data || 'Something went wrong');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'An error occurred. Please try again.');
+    }
+  };
 
   return (
-    <SafeAreaProvider style={{ flex: 1 }}>
+    <ImageBackground
+      source={require('../assets/images/gradblue.jpg')}
+      style={styles.background}
+      resizeMode="cover"
+    >
       <StatusBar hidden />
-
-      <ImageBackground
-        source={require("../assets/images/wave_background_blue.png")}
-        resizeMode="stretch"
-        style={[GlobalStyles.image, { backgroundColor: "white" }]}
-      />
-
-      <SafeAreaView
-        style={[
-          { flex: 1.5, backgroundColor: "white" },
-          GlobalStyles.centeredContainer,
-        ]}
-      >
-        <View style={{ padding: 20 }}>
-          <Text style={[GlobalStyles.title, { color: "black" }]}>Sign Up</Text>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.formWrapper}>
+          <Text style={styles.title}>Sign Up</Text>
 
           <TextInput
-            style={GlobalStyles.input}
-            placeholder="email"
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#DDD"
             value={email}
-            placeholderTextColor="#000080"
-            onChangeText={setemail}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
 
           <TextInput
-            style={GlobalStyles.input}
-            placeholder="username"
+            style={styles.input}
+            placeholder="Username"
+            placeholderTextColor="#DDD"
             value={username}
-            placeholderTextColor="#000080"
-            onChangeText={setname}
-          />
-          <TextInput
-            style={GlobalStyles.input}
-            placeholder="password"
-            value={password}
-            placeholderTextColor="#000080"
-            onChangeText={setpass}
-            secureTextEntry
+            onChangeText={setUsername}
+            autoCapitalize="none"
           />
 
-          <TouchableOpacity style={GlobalStyles.button} onPress={submit}>
-            <Text style={GlobalStyles.buttonText}>Sign up</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              placeholder="Password"
+              placeholderTextColor="#DDD"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.toggleButton}
+            >
+              <Text style={styles.toggleText}>
+                {showPassword ? 'Hide' : 'Show'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.button} onPress={submit}>
+            <Text style={styles.buttonText}>Sign Up</Text>
           </TouchableOpacity>
 
-          <Link href="/login" style={{ marginTop: 5 }}>
-            <Text style={GlobalStyles.reminder}>
+          <Link href="/login" style={styles.link}>
+            <Text style={styles.linkText}>
               Already have an account? Sign in here
             </Text>
           </Link>
         </View>
       </SafeAreaView>
-    </SafeAreaProvider>
+    </ImageBackground>
   );
-};
+}
 
-export default SignupScreen;
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  safeArea: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  formWrapper: {
+    width: '90%',
+    backgroundColor: 'rgba(0, 34, 68, 0.9)',
+    padding: 24,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#66A3FF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  title: {
+    fontSize: 32,
+    color: '#EEFFFF',
+    marginBottom: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  input: {
+    height: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    color: '#EEFFFF',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#AAD4FF',
+    fontSize: 16,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  toggleButton: {
+    marginLeft: 12,
+    padding: 6,
+  },
+  toggleText: {
+    color: '#AAD4FF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  button: {
+    backgroundColor: '#005BBB',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  link: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  linkText: {
+    color: '#EEFFFF',
+    fontSize: 14,
+  },
+});
