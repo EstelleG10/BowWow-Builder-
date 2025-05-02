@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useCart } from '../cartcontext';
+import GlobalStyles from "../../styles/GlobalStyleSheet";
 import * as Constants from '../../constants';
 
 // type for each item
@@ -44,10 +45,9 @@ export default function Category() {
         duration: 300,
         useNativeDriver: true,
       }),
-      ]).start(() => {
-    requestAnimationFrame(() => setShowToast(false));
-  });
-
+    ]).start(() => {
+      requestAnimationFrame(() => setShowToast(false));
+    });
   };
 
   useEffect(() => {
@@ -114,8 +114,6 @@ export default function Category() {
     >
       {/* Fixed Header */}
       <View style={styles.fixedHeader}>
-        <Text style={styles.header}></Text>
-
         <TouchableOpacity
           style={styles.cartIconWrapper}
           onPress={() => router.push("/cart")}
@@ -140,10 +138,12 @@ export default function Category() {
       </View>
 
       {/* Scrollable Content */}
-      <ScrollView
-        contentContainerStyle={[styles.scrollContainer, { paddingTop: 120 }]}
-      >
+      <ScrollView contentContainerStyle={[styles.scrollContainer, { paddingTop: 120 }]}>
         <View style={styles.container}>
+          <Text style={[GlobalStyles.title, { color: 'black'}]}>
+            Shop
+          </Text>
+
           <View style={styles.searchWrapper}>
             <TextInput
               style={styles.searchBar}
@@ -212,9 +212,7 @@ export default function Category() {
                 {item.img_route && item.img_route.trim() ? (
                   <Image
                     source={{
-                      uri: `${Constants.IP_ADDRESS}/${encodeURI(
-                        item.img_route.trim()
-                      )}`,
+                      uri: `${Constants.IP_ADDRESS}/${encodeURI(item.img_route.trim())}`,
                     }}
                     style={styles.itemImage}
                     onError={() =>
@@ -247,6 +245,7 @@ export default function Category() {
   );
 }
 
+
 const styles = StyleSheet.create({
   background: {
     flex: 1,
@@ -264,13 +263,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  header: {
-    marginTop: 55,
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: "black",
-  },
+  // header: {
+  //   marginTop: 55,
+  //   fontSize: 24,
+  //   fontWeight: "bold",
+  //   marginBottom: 20,
+  //   color: "black",
+  // },
   cartIconWrapper: {
     position: "absolute",
     top: 50,
@@ -295,29 +294,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
   },
+
   fixedHeader: {
   position: "absolute",
   top: 0,
   width: "100%",
+  height: 120,
   backgroundColor: 'rgba(255, 255, 255, 0.90)',
-  paddingBottom: 10,
   paddingHorizontal: 20,
-  zIndex: 10,
   borderBottomColor: "#ccc",
   borderBottomWidth: 1,
   alignItems: "center",
+  zIndex: 999,            
+  elevation: 10,      
 },
 totalPricePinned: {
   fontSize: 18,
   fontWeight: "bold",
   color: "black",
-  marginTop: -5,
   },
 underTextPinned: {
   color: "green",
   fontSize: 18,
   fontWeight: "bold",
-  marginTop: -5,
+ // marginTop: -5,
 },
 
 overTextPinned: {
@@ -326,16 +326,23 @@ overTextPinned: {
   fontWeight: "bold",
   marginTop: -5,
   },
-totalRow: {
+
+  totalRow: {
   flexDirection: "row",
   alignItems: "center",
   justifyContent: "center",
-  gap: 10, // for newer React Native versions
-  marginTop: -15,
+  marginTop: 60,
+  gap: 10,
+  zIndex: 20,
+  position: "relative",
+  height: 60,
+  //marginTop: -15,
+  marginBottom: 30,
 },
   searchWrapper: {
     width: "100%",
     alignItems: "center",
+    marginTop: 10,
     marginBottom: 10,
   },
   searchBar: {

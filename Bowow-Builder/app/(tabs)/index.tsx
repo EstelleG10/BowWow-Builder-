@@ -10,6 +10,7 @@ import {
   StatusBar,
   Dimensions,
   StyleSheet,
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -17,6 +18,7 @@ import {
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { FontAwesome } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Constants from '../../constants';
 
@@ -141,19 +143,32 @@ const Home = () => {
 
   useFocusEffect(useCallback(() => { fetchBundles(); }, [fetchBundles]));
 
-  return (
-    <ImageBackground source={require('../../assets/images/dark_blue.jpg')} style={styles.background}>
-      <SafeAreaProvider>
-        <SafeAreaView style={styles.container} edges={['top']}>
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 5 : 0}
+return (
+  <ImageBackground source={require('../../assets/images/dark_blue.jpg')} style={styles.background}>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <TouchableOpacity
+          style={styles.cartIconWrapper}
+          onPress={() => router.push("/profile")}
+        >
+          <Image
+            source={require("../../assets/images/icon.jpg")}
+            style={styles.cartIcon}
+          />
+        </TouchableOpacity>
+
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 5 : 0}
+        >
+          <ScrollView
+            contentContainerStyle={{ paddingBottom: 20 }}
+            keyboardShouldPersistTaps="handled"
           >
-      <ScrollView contentContainerStyle={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
             <View style={styles.textBox}>
               <Text style={styles.header}>Bow Wow Builder</Text>
-                <Text style={styles.textHeader}>The Wows of the Week</Text>
+              <Text style={styles.textHeader}>The Wows of the Week</Text>
               {showNoBundlesMessage && (
                 <Text style={styles.noBundlesMessage}>
                   You haven’t created any bundles yet! Build your first one!
@@ -346,8 +361,18 @@ const styles = StyleSheet.create({
   shadowOpacity: 0.1,
   shadowRadius: 4,
   elevation: 3,
-},
-
+  },
+    cartIconWrapper: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    zIndex: 10,
+  },
+  cartIcon: {
+    width: 40,
+    height: 40,
+    borderColor: 'grey',
+  },
   bundleTitle: {
     fontSize: 22,
     fontWeight: 'bold',

@@ -69,7 +69,7 @@ export default function Profile() {
         <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
           <ScrollView contentContainerStyle={styles.scrollContent}>
             <View style={styles.wrapper}>
-              <Text style={[GlobalStyles.title, { textAlign: "center" }]}>
+              <Text style={[GlobalStyles.title, { textAlign: "center", marginTop: 45, marginBottom: 20 }]}>
                 Profile
               </Text>
 
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 16,
+    padding: 10,
   },
   wrapper: {
     flex: 1,
@@ -215,13 +215,13 @@ accountValue: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginTop:4,
+    marginBottom: 25,
   },
   statItem: { alignItems: "center" },
   statValue: {
     fontSize: 24,
     fontWeight: "bold",
-    
     color: "white"
   },
   statLabel: {
@@ -246,13 +246,15 @@ accountValue: {
   },
   historyTitle: {
     fontWeight: "normal",
-    marginBottom: 8,
+    marginTop: 10,
+    marginBottom: 10,
   },
   bundleCard: {
     backgroundColor: "#F5F5F5",
-    borderRadius: 10,
+    marginTop: 8,
+    borderRadius: 8,
     padding: 15,
-    marginBottom: 16,
+    marginBottom: -3,
   },
   bundleHeader: {
     flexDirection: "row",

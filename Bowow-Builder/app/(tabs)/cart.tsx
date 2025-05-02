@@ -99,7 +99,7 @@ export default function CartScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.cartHeaderRow}>
-            <Text style={[GlobalStyles.title, { marginTop: 10 }]}>Cart</Text>
+            <Text style={[GlobalStyles.title, { marginTop: 60, marginBottom: -60 }]}>Cart</Text>
             <View style={styles.cartIconWrapper}>
               <Image
                 source={require("../../assets/images/cart_white.png")}
@@ -194,20 +194,20 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: "white",
     fontWeight: "bold",
-    marginTop: 10,
-    marginBottom: 5,
+    marginTop: 60,
+    marginBottom: 10,
   },
   underText: {
     color: "lightgreen",
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 50,
   },
   overText: {
     color: "red",
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 50,
   },
   itemBox: {
     width: "100%",
@@ -235,13 +235,15 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     color: "black",
     padding: 10,
-    marginTop: 10,
+    marginTop: 30,
+    marginBottom: 10,
     borderRadius: 10,
   },
   button: {
     padding: 12,
     borderRadius: 10,
     marginTop: 10,
+    marginBottom: 2,
     width: "100%",
     alignItems: "center",
   },
