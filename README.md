@@ -7,8 +7,7 @@
 
 For the final project, we have created an app that allows users to build their lunch meal at the Bow Wow, keeping track of their total cost, and share it with others.
 
-
-There are four key pages. The **home page** is where users can interact, posting their daily Bow Wow combos, comments, and rating their meals, along with others. The **food page** where users can browse through items in the BowWow. The **cart page** allows users to save a meal bundle and post it. And finally, the **profile page** where users can see their account information, a history of their meals, and the average ratings on their meals.
+There are four key pages. The **home page** is where users can interact, posting their daily Bow Wow combos, comments, and rating their meals, along with others. The **food page** where users can browse through items in the BowWow, keeping a running total that shows how much they are over or under the $12 (price equivalent of one meal swipe). The **cart page** allows users to save a meal bundle and post it. And finally, the **profile page** where users can see their account information, a history of their meal bundles, and the average ratings on their meals. 
 
 
 ## Tech Stack
@@ -25,22 +24,19 @@ The following instructions will be for Mac/Linux machines.
 
 Our libraries and databases have all been set up on our EC2 instances. As a result, we will be walking through how to set up the EC2 locally. Please contact us if you run into any issues that we have not outlined.
 
-
-- Download the my_key.pem file on your computer with the path saved.
-- Copy the following into the terminal and _replace the string with your file path_
- - `ssh -i "my_key.pem file path" ec2-user@13.58.115.85`
+- Download the my_key.pem file on your computer with the path saved. 
+- Copy the following into the terminal: **ssh -i <path to the_key.pem> ec2-user@13.58.115.85**
+(FOR EX: **ssh -i /Users/amy/Desktop/the_key.pem ec2-user@13.58.115.85**)
 
 
 To run the app:
 
-
-- Connect to EC2 Instance
- On one terminal, cd into the Bowow-Builder folder
-- Type `python3 appp.py` in the terminal to connect to the server (at port 9000)
-- On another terminal, make sure to be in the Bowow-Builder folder, and type `npx expo start`
-- The app can then be displayed in two ways
- - Download the ExpoGo app on another device and scan the QR code
- - Connect an Android or IOS emulator and type a or i to run.
+- Once in the EC2 Instance, run: **cd project-project-group-5/Bowow-Builder/**
+- From here, run **python3 appp.py** in the terminal to connect to the server (at port 9000)
+- Finally, in a second terminal, cd into the Bowow-Builder folder, and type **npx expo start**
+- The app can then be displayed in two ways:
+        - Download the ExpoGo app on another device and scan the QR code
+        - Connect using an Android/IOS emulator.
 
 
 ## Codebase Structure
