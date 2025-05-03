@@ -22,22 +22,27 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // submit function for handling login
   const submit = async () => {
+    // check if both fields are filled
     if (!username || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
     try {
+      // send login request to the API
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
       const data = await response.json();
+      // handle successful login response
       if (response.status === 200 && data.token) {
         await AsyncStorage.setItem('token', data.token);
         router.replace('/(tabs)');
       } else {
+        // show error if login fails
         Alert.alert('Login failed', 'Invalid username or password');
       }
     } catch (error) {
@@ -57,6 +62,7 @@ export default function LoginScreen() {
         <View style={styles.formWrapper}>
           <Text style={styles.title}>Login</Text>
 
+          {/* input field for username */}
           <TextInput
             style={styles.input}
             placeholder="Username"
@@ -66,6 +72,7 @@ export default function LoginScreen() {
             autoCapitalize="none"
           />
 
+          {/* container for password input and show/hide toggle */}
           <View style={styles.passwordContainer}>
             <TextInput
               style={[styles.input, { flex: 1 }]}
@@ -79,16 +86,19 @@ export default function LoginScreen() {
               onPress={() => setShowPassword(!showPassword)}
               style={styles.toggleButton}
             >
+              {/* button to toggle password visibility */}
               <Text style={styles.toggleText}>
                 {showPassword ? 'Hide' : 'Show'}
               </Text>
             </TouchableOpacity>
           </View>
 
+          {/* login button */}
           <TouchableOpacity style={styles.button} onPress={submit}>
             <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
 
+          {/* link to signup page */}
           <Link href="/signup" style={styles.link}>
             <Text style={styles.linkText}>
               Don't have an account? Register Now

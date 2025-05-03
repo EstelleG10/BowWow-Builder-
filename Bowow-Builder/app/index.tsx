@@ -12,6 +12,7 @@ import GlobalStyles from "../styles/GlobalStyleSheet";
 
 export default function Index() {
   return (
+    // background image for the main screen
     <ImageBackground
       source={require("../assets/images/take2.png")}
       style={styles.background}
@@ -21,15 +22,18 @@ export default function Index() {
       <SafeAreaProvider>
         <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
           <View style={styles.content}>
+            {/* content of the screen */}
           </View>
 
           <View style={styles.buttonContainer}>
+            {/* login button */}
             <TouchableOpacity
               style={[GlobalStyles.button, { backgroundColor: '#063E68' }]}
               onPress={() => router.push("/login")}
             >
               <Text style={GlobalStyles.buttonText}>Login</Text>
             </TouchableOpacity>
+            {/* sign up button */}
             <TouchableOpacity
               style={[GlobalStyles.button, { backgroundColor: '#063E68' }]}
               onPress={() => router.push("/signup")}

@@ -17,27 +17,33 @@ import * as Constants from '../constants';
 const API_URL = Constants.IP_ADDRESS + 'signup';
 
 export default function SignupScreen() {
+  // state hooks for email, username, password, and show password toggle
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // submit function for handling signup
   const submit = async () => {
+    // check if all fields are filled
     if (!email || !username || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
     try {
+      // send signup request to the API
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, username, password }),
       });
       const data = await response.text();
+      // handle successful signup response
       if (response.status === 201) {
         Alert.alert('Success', 'User registered successfully!');
         await AsyncStorage.setItem('user', JSON.stringify(data));
       } else {
+        // show error if signup fails
         Alert.alert('Error', data || 'Something went wrong');
       }
     } catch (error) {
@@ -57,6 +63,7 @@ export default function SignupScreen() {
         <View style={styles.formWrapper}>
           <Text style={styles.title}>Sign Up</Text>
 
+          {/* input field for email */}
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -67,6 +74,7 @@ export default function SignupScreen() {
             autoCapitalize="none"
           />
 
+          {/* input field for username */}
           <TextInput
             style={styles.input}
             placeholder="Username"
@@ -76,6 +84,7 @@ export default function SignupScreen() {
             autoCapitalize="none"
           />
 
+          {/* container for password input and show/hide toggle */}
           <View style={styles.passwordContainer}>
             <TextInput
               style={[styles.input, { flex: 1 }]}
@@ -89,16 +98,19 @@ export default function SignupScreen() {
               onPress={() => setShowPassword(!showPassword)}
               style={styles.toggleButton}
             >
+              {/* button to toggle password visibility */}
               <Text style={styles.toggleText}>
                 {showPassword ? 'Hide' : 'Show'}
               </Text>
             </TouchableOpacity>
           </View>
 
+          {/* sign up button */}
           <TouchableOpacity style={styles.button} onPress={submit}>
             <Text style={styles.buttonText}>Sign Up</Text>
           </TouchableOpacity>
 
+          {/* link to login page */}
           <Link href="/login" style={styles.link}>
             <Text style={styles.linkText}>
               Already have an account? Sign in here

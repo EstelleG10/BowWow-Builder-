@@ -10,16 +10,23 @@ import {
   TextInput,
   Alert,
   Animated,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { useCart } from "../cartcontext";
 import GlobalStyles from "../../styles/GlobalStyleSheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Constants from "../../constants";
 
+// define cart screen component
 export default function CartScreen() {
+  // state for showing toast and animated position
   const [showToast, setShowToast] = useState(false);
   const toastY = useRef(new Animated.Value(100)).current;
 
+  // function to trigger toast animation
   const triggerToast = () => {
     setShowToast(true);
     Animated.sequence([
@@ -37,9 +44,11 @@ export default function CartScreen() {
     ]).start(() => setShowToast(false));
   };
 
+  // get cart methods and data from context
   const { cart, removeFromCart, clearCart } = useCart();
   const [mealName, setMealName] = useState("");
 
+  // function to calculate total price of items in cart
   const calculateTotal = () => {
     return cart.reduce(
       (total, item) => total + parseFloat(item.price as any),
@@ -47,25 +56,30 @@ export default function CartScreen() {
     );
   };
 
+  // derive total and whether it is over the limit
   const total = calculateTotal();
   const amountLeftOrOver =
     total > 12 ? (total - 12).toFixed(2) : (12 - total).toFixed(2);
   const isOver = total > 12;
 
+  // function to handle saving a meal to the server
   const handleSaveMeal = async () => {
     if (!mealName.trim()) {
       Alert.alert("Please enter a meal name!");
       return;
     }
 
+    // construct meal data object
     const mealData = {
       name: mealName,
       items: cart.map((item) => item.id),
     };
 
     try {
+      // retrieve auth token
       const token = await AsyncStorage.getItem("token");
 
+      // send post request to api
       const response = await fetch(Constants.IP_ADDRESS + "api/meals", {
         method: "POST",
         headers: {
@@ -75,6 +89,7 @@ export default function CartScreen() {
         body: JSON.stringify(mealData),
       });
 
+      // show toast and reset on success
       if (response.ok) {
         triggerToast();
         setMealName("");
@@ -89,76 +104,93 @@ export default function CartScreen() {
   };
 
   return (
+    // render background image
     <ImageBackground
       source={require('../../assets/images/dark_blue.jpg')}
       style={styles.background}
     >
       <View style={styles.scrollWrapper}>
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
+        {/* scrollable cart content */}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <View style={styles.cartHeaderRow}>
-            <Text style={[GlobalStyles.title, { marginTop: 60, marginBottom: -60 }]}>Cart</Text>
-            <View style={styles.cartIconWrapper}>
-              <Image
-                source={require("../../assets/images/cart_white.png")}
-                style={styles.cartIcon}
-              />
-              {cart.length > 0 && (
-                <View style={styles.cartBadge}>
-                  <Text style={styles.badgeText}>{cart.length}</Text>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ScrollView
+              contentContainerStyle={styles.container}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* cart header with title and icon */}
+              <View style={styles.cartHeaderRow}>
+                <Text style={[GlobalStyles.title, { marginTop: 60, marginBottom: -60 }]}>Cart</Text>
+                <View style={styles.cartIconWrapper}>
+                  <Image
+                    source={require("../../assets/images/cart_white.png")}
+                    style={styles.cartIcon}
+                  />
+                  {/* cart badge for item count */}
+                  {cart.length > 0 && (
+                    <View style={styles.cartBadge}>
+                      <Text style={styles.badgeText}>{cart.length}</Text>
+                    </View>
+                  )}
                 </View>
-              )}
-            </View>
-          </View>
-
-          <Text style={styles.totalPrice}>Total Price: ${total.toFixed(2)}</Text>
-          <Text style={isOver ? styles.overText : styles.underText}>
-            {isOver
-              ? `Amount Over: $${amountLeftOrOver}`
-              : `Amount Left: $${amountLeftOrOver}`}
-          </Text>
-
-          {cart.map((item, index) => (
-            <View key={index} style={styles.itemBox}>
-              <View style={styles.itemTextWrapper}>
-                <Text style={styles.itemText}>{item.name}</Text>
-                <Text style={styles.itemText}>
-                  ${parseFloat(item.price as any).toFixed(2)}
-                </Text>
               </View>
-              <TouchableOpacity
-                onPress={() => removeFromCart(item.id)}
-                style={styles.trashWrapper}
-              >
-                <Image
-                  source={require('../../assets/images/trash.png')}
-                  style={styles.trashIcon}
-                />
+
+              {/* display total price and difference */}
+              <Text style={styles.totalPrice}>Total Price: ${total.toFixed(2)}</Text>
+              <Text style={isOver ? styles.overText : styles.underText}>
+                {isOver
+                  ? `Amount Over: $${amountLeftOrOver}`
+                  : `Amount Left: $${amountLeftOrOver}`}
+              </Text>
+
+              {/* render each item in cart */}
+              {cart.map((item, index) => (
+                <View key={index} style={styles.itemBox}>
+                  <View style={styles.itemTextWrapper}>
+                    <Text style={styles.itemText}>{item.name}</Text>
+                    <Text style={styles.itemText}>
+                      ${parseFloat(item.price as any).toFixed(2)}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => removeFromCart(item.id)}
+                    style={styles.trashWrapper}
+                  >
+                    <Image
+                      source={require('../../assets/images/trash.png')}
+                      style={styles.trashIcon}
+                    />
+                  </TouchableOpacity>
+                </View>
+              ))}
+
+              {/* input to name the meal */}
+              <TextInput
+                style={styles.input}
+                placeholder="Name your meal..."
+                placeholderTextColor="gray"
+                value={mealName}
+                onChangeText={setMealName}
+              />
+
+              {/* button to save and post meal */}
+              <TouchableOpacity style={[styles.button, styles.greenButton]} onPress={handleSaveMeal}>
+                <Text style={styles.buttonText}>Save and Post Meal!!</Text>
               </TouchableOpacity>
-            </View>
-          ))}
 
-          <TextInput
-            style={styles.input}
-            placeholder="Name your meal..."
-            placeholderTextColor="gray"
-            value={mealName}
-            onChangeText={setMealName}
-          />
+              {/* button to clear cart */}
+              {cart.length > 0 && (
+                <TouchableOpacity style={[styles.button, styles.redButton]} onPress={clearCart}>
+                  <Text style={styles.buttonText}>Clear Cart</Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
 
-          <TouchableOpacity style={[styles.button, styles.greenButton]} onPress={handleSaveMeal}>
-            <Text style={styles.buttonText}>Save and Post Meal!!</Text>
-          </TouchableOpacity>
-
-          {cart.length > 0 && (
-            <TouchableOpacity style={[styles.button, styles.redButton]} onPress={clearCart}>
-              <Text style={styles.buttonText}>Clear Cart</Text>
-            </TouchableOpacity>
-          )}
-        </ScrollView>
-
+        {/* animated toast display */}
         {showToast && (
           <Animated.View
             style={[styles.toast, { transform: [{ translateY: toastY }] }]}
@@ -171,6 +203,7 @@ export default function CartScreen() {
   );
 }
 
+// styles for cart screen
 const styles = StyleSheet.create({
   background: {
     flex: 1,

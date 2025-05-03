@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  StyleSheet, Text, View, Vibration, TouchableOpacity, ScrollView,
+  StyleSheet, Text, View, TouchableOpacity, ScrollView,
   ImageBackground, TextInput, Image, Animated
 } from 'react-native';
 import { router } from 'expo-router';
@@ -18,233 +18,249 @@ type Item = {
 };
 
 export default function Category() {
-  const [foodItems, setFoodItems] = useState<Item[]>([]);
-  const [filteredItems, setFilteredItems] = useState<Item[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  // state for food items, filters, and category selection
+  const [foodItems, setFoodItems] = useState<Item[]>([]);  
+  const [filteredItems, setFilteredItems] = useState<Item[]>([]);  
+  const [searchTerm, setSearchTerm] = useState("");  
+  const [minPrice, setMinPrice] = useState("");  
+  const [maxPrice, setMaxPrice] = useState("");  
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);  
 
-  const { cart, addToCart } = useCart();
-  const API_URL = Constants.IP_ADDRESS + "items";
+  // cart state and API URL setup
+  const { cart, addToCart } = useCart();  
+  const API_URL = Constants.IP_ADDRESS + "items";  
 
-  const [showToast, setShowToast] = useState(false);
+  // toast notification state and animation reference
+  const [showToast, setShowToast] = useState(false);  
   const toastY = useRef(new Animated.Value(100)).current;
 
-  const triggerToast = () => {
-    setShowToast(true);
-    Animated.sequence([
-      Animated.timing(toastY, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.delay(1000),
-      Animated.timing(toastY, {
-        toValue: 100,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      requestAnimationFrame(() => setShowToast(false));
+  // function to trigger toast animation
+  const triggerToast = () => {  
+    setShowToast(true);  
+    Animated.sequence([  
+      Animated.timing(toastY, {  
+        toValue: 0,  
+        duration: 300,  
+        useNativeDriver: true,  
+      }),  
+      Animated.delay(1000),  
+      Animated.timing(toastY, {  
+        toValue: 100,  
+        duration: 300,  
+        useNativeDriver: true,  
+      }),  
+    ]).start(() => {  
+      requestAnimationFrame(() => setShowToast(false));  
     });
   };
 
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
-        setFoodItems(data);
-        setFilteredItems(data);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      }
+  useEffect(() => {  
+    // fetch items from API
+    const fetchItems = async () => {  
+      try {  
+        const response = await fetch(API_URL);  
+        const data = await response.json();  
+        setFoodItems(data);  
+        setFilteredItems(data);  
+      } catch (error) {  
+        console.error("Error fetching items:", error);  
+      }  
+    };  
+    fetchItems();  
+  }, []);  
+
+  useEffect(() => {  
+    // filter items based on search, price, and category
+    filterItems();  
+  }, [searchTerm, minPrice, maxPrice, selectedCategory, foodItems]);  
+
+  const filterItems = () => {  
+    // parsing price filter values
+    const min = parseFloat(minPrice);  
+    const max = parseFloat(maxPrice);  
+
+    // filtering logic
+    const matchesSearch = (item: Item) =>  
+      item.name.toLowerCase().includes(searchTerm.toLowerCase());  
+
+    const matchesPrice = (item: Item) => {  
+      if (isNaN(min) && isNaN(max)) return true;  
+      if (!isNaN(min) && item.price < min) return false;  
+      if (!isNaN(max) && item.price > max) return false;  
+      return true;  
     };
-    fetchItems();
-  }, []);
 
-  useEffect(() => {
-    filterItems();
-  }, [searchTerm, minPrice, maxPrice, selectedCategory, foodItems]);
+    const matchesCategory = (item: Item) =>  
+      !selectedCategory || item.category === selectedCategory;  
 
-  const filterItems = () => {
-    const min = parseFloat(minPrice);
-    const max = parseFloat(maxPrice);
+    // updating filtered items
+    const results = foodItems.filter(  
+      (item) =>  
+        matchesSearch(item) && matchesPrice(item) && matchesCategory(item)  
+    );  
 
-    const matchesSearch = (item: Item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesPrice = (item: Item) => {
-      if (isNaN(min) && isNaN(max)) return true;
-      if (!isNaN(min) && item.price < min) return false;
-      if (!isNaN(max) && item.price > max) return false;
-      return true;
-    };
-
-    const matchesCategory = (item: Item) =>
-      !selectedCategory || item.category === selectedCategory;
-
-    const results = foodItems.filter(
-      (item) =>
-        matchesSearch(item) && matchesPrice(item) && matchesCategory(item)
-    );
-
-    setFilteredItems(results);
+    setFilteredItems(results);  
   };
 
-  const calculateTotal = () =>
-    cart
-      .reduce((total, item) => total + parseFloat(item.price as any), 0)
-      .toFixed(2);
+  // function to calculate total price in the cart
+  const calculateTotal = () =>  
+    cart  
+      .reduce((total, item) => total + parseFloat(item.price as any), 0)  
+      .toFixed(2);  
 
-  const total = parseFloat(calculateTotal());
-  const amountLeftOrOver =
-    total > 12 ? (total - 12).toFixed(2) : (12 - total).toFixed(2);
-  const isOver = total > 12;
+  const total = parseFloat(calculateTotal());  
+  const amountLeftOrOver =  
+    total > 12 ? (total - 12).toFixed(2) : (12 - total).toFixed(2);  
+  const isOver = total > 12;  
 
-  const allCategories = Array.from(
-    new Set(foodItems.map((item) => item.category).filter(Boolean))
+  // getting unique categories
+  const allCategories = Array.from(  
+    new Set(foodItems.map((item) => item.category).filter(Boolean))  
   );
 
   return (
-    <ImageBackground
-      source={require("../../assets/images/background_white.jpg")}
-      style={styles.background}
+    <ImageBackground  
+      source={require("../../assets/images/background_white.jpg")}  
+      style={styles.background}  
     >
-      {/* Fixed Header */}
-      <View style={styles.fixedHeader}>
-        <TouchableOpacity
-          style={styles.cartIconWrapper}
-          onPress={() => router.push("/cart")}
+      {/* fixed header with cart and total price */}
+      <View style={styles.fixedHeader}>  
+        <TouchableOpacity  
+          style={styles.cartIconWrapper}  
+          onPress={() => router.push("/cart")}  
         >
-          <Image
-            source={require("../../assets/images/cart.png")}
-            style={styles.cartIcon}
-          />
-          {cart.length > 0 && (
-            <View style={styles.cartBadge}>
-              <Text style={styles.badgeText}>{cart.length}</Text>
-            </View>
-          )}
+          <Image  
+            source={require("../../assets/images/cart.png")}  
+            style={styles.cartIcon}  
+          />  
+          {cart.length > 0 && (  
+            <View style={styles.cartBadge}>  
+              <Text style={styles.badgeText}>{cart.length}</Text>  
+            </View>  
+          )}  
         </TouchableOpacity>
 
-        <View style={styles.totalRow}>
-          <Text style={styles.totalPricePinned}>Total: ${total.toFixed(2)}</Text>
-          <Text style={isOver ? styles.overTextPinned : styles.underTextPinned}>
-            {isOver ? `Over: $${amountLeftOrOver}` : `Left: $${amountLeftOrOver}`}
-          </Text>
-        </View>
+        <View style={styles.totalRow}>  
+          <Text style={styles.totalPricePinned}>Total: ${total.toFixed(2)}</Text>  
+          <Text style={isOver ? styles.overTextPinned : styles.underTextPinned}>  
+            {isOver ? `Over: $${amountLeftOrOver}` : `Left: $${amountLeftOrOver}`}  
+          </Text>  
+        </View>  
       </View>
 
-      {/* Scrollable Content */}
-      <ScrollView contentContainerStyle={[styles.scrollContainer, { paddingTop: 120 }]}>
-        <View style={styles.container}>
-          <Text style={[GlobalStyles.title, { color: 'black'}]}>
-            Shop
+      {/* scrollable content */}
+      <ScrollView contentContainerStyle={[styles.scrollContainer, { paddingTop: 120 }]}>  
+        <View style={styles.container}>  
+          <Text style={[GlobalStyles.title, { color: 'black'}]}>  
+            Shop  
           </Text>
 
-          <View style={styles.searchWrapper}>
-            <TextInput
-              style={styles.searchBar}
-              placeholder="Search items..."
-              placeholderTextColor="#888"
-              value={searchTerm}
-              onChangeText={(text) => setSearchTerm(text)}
-            />
+          {/* search bar */}
+          <View style={styles.searchWrapper}>  
+            <TextInput  
+              style={styles.searchBar}  
+              placeholder="Search items..."  
+              placeholderTextColor="#888"  
+              value={searchTerm}  
+              onChangeText={(text) => setSearchTerm(text)}  
+            />  
           </View>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.categoryScroll}
+          {/* category filter */}
+          <ScrollView  
+            horizontal  
+            showsHorizontalScrollIndicator={false}  
+            style={styles.categoryScroll}  
           >
-            {allCategories.map((cat, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.categoryButton,
-                  selectedCategory === cat && styles.categorySelected,
-                ]}
-                onPress={() =>
-                  setSelectedCategory((prev) => (prev === cat ? null : cat))
-                }
-              >
-                <Text style={styles.categoryText}>{cat}</Text>
-              </TouchableOpacity>
-            ))}
+            {allCategories.map((cat, index) => (  
+              <TouchableOpacity  
+                key={index}  
+                style={[  
+                  styles.categoryButton,  
+                  selectedCategory === cat && styles.categorySelected,  
+                ]}  
+                onPress={() =>  
+                  setSelectedCategory((prev) => (prev === cat ? null : cat))  
+                }  
+              >  
+                <Text style={styles.categoryText}>{cat}</Text>  
+              </TouchableOpacity>  
+            ))}  
           </ScrollView>
 
-          <View style={styles.priceFilterBox}>
-            <TextInput
-              style={styles.priceInput}
-              placeholder="Min Price"
-              placeholderTextColor="#888"
-              keyboardType="numeric"
-              value={minPrice}
-              onChangeText={setMinPrice}
-            />
-            <TextInput
-              style={styles.priceInput}
-              placeholder="Max Price"
-              placeholderTextColor="#888"
-              keyboardType="numeric"
-              value={maxPrice}
-              onChangeText={setMaxPrice}
-            />
-            <TouchableOpacity style={styles.filterButton} onPress={filterItems}>
-              <Text style={styles.buttonText}>Show Me Results</Text>
-            </TouchableOpacity>
+          {/* price filters */}
+          <View style={styles.priceFilterBox}>  
+            <TextInput  
+              style={styles.priceInput}  
+              placeholder="Min Price"  
+              placeholderTextColor="#888"  
+              keyboardType="numeric"  
+              value={minPrice}  
+              onChangeText={setMinPrice}  
+            />  
+            <TextInput  
+              style={styles.priceInput}  
+              placeholder="Max Price"  
+              placeholderTextColor="#888"  
+              keyboardType="numeric"  
+              value={maxPrice}  
+              onChangeText={setMaxPrice}  
+            />  
+            <TouchableOpacity style={styles.filterButton} onPress={filterItems}>  
+              <Text style={styles.buttonText}>Show Me Results</Text>  
+            </TouchableOpacity>  
           </View>
 
+          {/* click to add items to cart */}
           <Text style={styles.Click}>Click Items to Add to Cart!</Text>
 
-          <View style={styles.grid}>
-            {filteredItems.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.itemBox}
-                onPress={() => {
-                  addToCart(item);
-                  triggerToast();
-                }}
-              >
-                {item.img_route && item.img_route.trim() ? (
-                  <Image
-                    source={{
-                      uri: `${Constants.IP_ADDRESS}/${encodeURI(item.img_route.trim())}`,
-                    }}
-                    style={styles.itemImage}
-                    onError={() =>
-                      console.warn(`Could not load image for ${item.name}`)
-                    }
-                  />
-                ) : (
-                  <View style={styles.imagePlaceholder} />
-                )}
-                <Text style={styles.itemText} numberOfLines={2}>
-                  {item.name}
-                </Text>
-                <Text style={styles.itemText}>
-                  ${parseFloat(item.price as any).toFixed(2)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+          {/* grid of filtered items */}
+          <View style={styles.grid}>  
+            {filteredItems.map((item, index) => (  
+              <TouchableOpacity  
+                key={index}  
+                style={styles.itemBox}  
+                onPress={() => {  
+                  addToCart(item);  
+                  triggerToast();  
+                }}  
+              >  
+                {item.img_route && item.img_route.trim() ? (  
+                  <Image  
+                    source={{  
+                      uri: `${Constants.IP_ADDRESS}/${encodeURI(item.img_route.trim())}`,  
+                    }}  
+                    style={styles.itemImage}  
+                    onError={() =>  
+                      console.warn(`Could not load image for ${item.name}`)  
+                    }  
+                  />  
+                ) : (  
+                  <View style={styles.imagePlaceholder} />  
+                )}  
+                <Text style={styles.itemText} numberOfLines={2}>  
+                  {item.name}  
+                </Text>  
+                <Text style={styles.itemText}>  
+                  ${parseFloat(item.price as any).toFixed(2)}  
+                </Text>  
+              </TouchableOpacity>  
+            ))}  
+          </View>  
+        </View>  
       </ScrollView>
 
-      {showToast && (
-        <Animated.View
-          style={[styles.toast, { transform: [{ translateY: toastY }] }]}
-        >
-          <Text style={styles.toastText}>Added to Cart!</Text>
-        </Animated.View>
+      {/* toast notification */}
+      {showToast && (  
+        <Animated.View  
+          style={[styles.toast, { transform: [{ translateY: toastY }] }]}  
+        >  
+          <Text style={styles.toastText}>Added to Cart!</Text>  
+        </Animated.View>  
       )}
-    </ImageBackground>
+    </ImageBackground>  
   );
 }
-
 
 const styles = StyleSheet.create({
   background: {
@@ -263,13 +279,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  // header: {
-  //   marginTop: 55,
-  //   fontSize: 24,
-  //   fontWeight: "bold",
-  //   marginBottom: 20,
-  //   color: "black",
-  // },
   cartIconWrapper: {
     position: "absolute",
     top: 50,
@@ -317,7 +326,6 @@ underTextPinned: {
   color: "green",
   fontSize: 18,
   fontWeight: "bold",
- // marginTop: -5,
 },
 
 overTextPinned: {
@@ -336,7 +344,6 @@ overTextPinned: {
   zIndex: 20,
   position: "relative",
   height: 60,
-  //marginTop: -15,
   marginBottom: 30,
 },
   searchWrapper: {

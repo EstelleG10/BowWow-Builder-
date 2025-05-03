@@ -14,62 +14,66 @@ import GlobalStyles from "../../styles/GlobalStyleSheet";
 import { FontAwesome } from '@expo/vector-icons';
 import { useFocusEffect, router } from "expo-router";
 
-type Bundle = {
-  id: number;
-  name: string;
-  created_at: number;
-  items: string[];
+// defining the Bundle type
+type Bundle = {  
+  id: number;  
+  name: string;  
+  created_at: number;  
+  items: string[];  
 };
 
 export default function Profile() {
-  const [username, setUsername] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [bundleCount, setBundleCount] = useState(0);
-  const [avgRating, setAvgRating] = useState(0);
-  const [bundles, setBundles] = useState<Bundle[]>([]);
+  // state variables for user profile and bundles
+  const [username, setUsername] = useState<string>("");  
+  const [email, setEmail] = useState<string>("");  
+  const [bundleCount, setBundleCount] = useState(0);  
+  const [avgRating, setAvgRating] = useState(0);  
+  const [bundles, setBundles] = useState<Bundle[]>([]);  
 
-  useFocusEffect(
+  useFocusEffect(  
+    // fetching profile data on focus
     React.useCallback(() => {
-      let isActive = true;
+      let isActive = true;  
       (async () => {
-        const token = await AsyncStorage.getItem("token");
-        if (!token) return;
+        const token = await AsyncStorage.getItem("token");  
+        if (!token) return;  
         try {
-          const res = await fetch(`${Constants.IP_ADDRESS}/api/profile`, {
-            headers: { Authorization: `Bearer ${token}` },
+          const res = await fetch(`${Constants.IP_ADDRESS}/api/profile`, {  
+            headers: { Authorization: `Bearer ${token}` },  
           });
-          if (!res.ok) throw new Error(`Status ${res.status}`);
-          const data = await res.json();
-          if (isActive) {
-            setUsername(data.username);
-            setEmail(data.email);
-            setBundleCount(data.bundleCount);
-            setAvgRating(Number(data.avgRating));
-            setBundles(data.bundles);
+          if (!res.ok) throw new Error(`Status ${res.status}`);  
+          const data = await res.json();  
+          if (isActive) {  
+            setUsername(data.username);  
+            setEmail(data.email);  
+            setBundleCount(data.bundleCount);  
+            setAvgRating(Number(data.avgRating));  
+            setBundles(data.bundles);  
           }
         } catch (err) {
-          console.error("Failed to load profile:", err);
+          console.error("Failed to load profile:", err);  
         }
       })();
-      return () => { isActive = false };
-    }, [])
+      return () => { isActive = false };  
+    }, [])  
   );
 
+  // logout function
   const handleLogout = async () => {
-    await AsyncStorage.removeItem("token");
-    router.replace("/login");
+    await AsyncStorage.removeItem("token");  
+    router.replace("/login");  
   };
 
   return (
     <ImageBackground
-      source={require("../../assets/images/dark_blue.jpg")}
+      source={require("../../assets/images/dark_blue.jpg")}  
       style={styles.background}
     >
       <SafeAreaProvider>
         <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
           <ScrollView contentContainerStyle={styles.scrollContent}>
             <View style={styles.wrapper}>
-              <Text style={[GlobalStyles.title, { textAlign: "center", marginTop: 45, marginBottom: 20 }]}>
+              <Text style={[GlobalStyles.title, { textAlign: "center", marginTop: 50, marginBottom: 20 }]}>
                 Profile
               </Text>
 

@@ -22,6 +22,7 @@ import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Constants from '../../constants';
 
+// star rating component
 const StarRating = ({ rating, onChange }) => (
   <View style={{ flexDirection: "row" }}>
     {[1, 2, 3, 4, 5].map((n) => (
@@ -36,7 +37,9 @@ const StarRating = ({ rating, onChange }) => (
   </View>
 );
 
+// home screen component
 const Home = () => {
+  // state hooks
   const [bundles, setBundles] = useState<any[]>([]);
   const [ratings, setRatings] = useState<{ [mealId: number]: string }>({});
   const [comments, setComments] = useState<{ [mealId: number]: any[] }>({});
@@ -45,7 +48,7 @@ const Home = () => {
   const [showAllComments, setShowAllComments] = useState<{ [mealId: number]: boolean }>({});
   const navigation = useNavigation();
 
-
+  // get username from token
   const fetchUsername = async () => {
     const token = await AsyncStorage.getItem("token");
     if (token) {
@@ -54,6 +57,7 @@ const Home = () => {
     }
   };
 
+  // get comments for one meal
   const fetchComments = async (mealId: number) => {
     try {
       const res = await fetch(Constants.IP_ADDRESS + `api/meals/${mealId}/comments`);
@@ -64,6 +68,7 @@ const Home = () => {
     }
   };
 
+  // get all bundles
   const fetchBundles = useCallback(async () => {
     try {
       const response = await fetch(Constants.IP_ADDRESS + 'api/meals');
@@ -77,6 +82,7 @@ const Home = () => {
     }
   }, []);
 
+  // submit a rating
   const submitRating = async (mealId: number, rating: string) => {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -102,6 +108,7 @@ const Home = () => {
     }
   };
 
+  // delete a comment
   const handleDeleteComment = async (commentId: number, mealId: number) => {
     try {
       const res = await fetch(Constants.IP_ADDRESS + `api/comments/${commentId}`, {
@@ -117,6 +124,7 @@ const Home = () => {
     }
   };
 
+  // delete a bundle
   const handleDeleteBundle = async (bundleId: number) => {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -136,174 +144,183 @@ const Home = () => {
     }
   };
 
+  // fetch username and bundles on load
   useEffect(() => {
     fetchUsername();
     fetchBundles();
   }, []);
 
+  // refresh bundles when screen gains focus
   useFocusEffect(useCallback(() => { fetchBundles(); }, [fetchBundles]));
 
-return (
-  <ImageBackground source={require('../../assets/images/dark_blue.jpg')} style={styles.background}>
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <TouchableOpacity
-          style={styles.cartIconWrapper}
-          onPress={() => router.push("/profile")}
-        >
-          <Image
-            source={require("../../assets/images/icon.jpg")}
-            style={styles.cartIcon}
-          />
-        </TouchableOpacity>
-
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 5 : 0}
-        >
-          <ScrollView
-            contentContainerStyle={{ paddingBottom: 20 }}
-            keyboardShouldPersistTaps="handled"
+  // render
+  return (
+    <ImageBackground source={require('../../assets/images/dark_blue.jpg')} style={styles.background}>
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <TouchableOpacity
+            style={styles.cartIconWrapper}
+            onPress={() => router.push("/profile")}
           >
-            <View style={styles.textBox}>
-              <Text style={styles.header}>Bow Wow Builder</Text>
-              <Text style={styles.textHeader}>The Wows of the Week</Text>
-              {showNoBundlesMessage && (
-                <Text style={styles.noBundlesMessage}>
-                  You haven’t created any bundles yet! Build your first one!
-                </Text>
-              )}
-            </View>
+            <Image
+              source={require("../../assets/images/icon.jpg")}
+              style={styles.cartIcon}
+            />
+          </TouchableOpacity>
 
-            {bundles.map((bundle, idx) => (
-              <View key={idx} style={styles.bundleWrapper}>
-                <View style={styles.bundleBox}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingRight: 20 }}>
-                  <View>
-                    <Text style={styles.bundleTitle}>{bundle.title || bundle.name}</Text>
-                    <Text style={styles.posterText}>Posted by: {bundle.poster}</Text>
-                  </View>
-                  {bundle.poster === username && (
-                    <Pressable onPress={() => handleDeleteBundle(bundle.id)}>
-                      <Image source={require('../../assets/images/trash.png')} style={{ width: 20, height: 20 }} />
-                    </Pressable>
-                  )}
-                </View>
-
-                {bundle.avg_rating !== undefined && (
-                  <Text style={styles.ratingDisplay}>Average Rating: {bundle.avg_rating}</Text>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 5 : 0}
+          >
+            <ScrollView
+              contentContainerStyle={{ paddingBottom: 20 }}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.textBox}>
+                <Text style={styles.header}>Bow Wow Builder</Text>
+                <Text style={styles.textHeader}>The Wows of the Week</Text>
+                {showNoBundlesMessage && (
+                  <Text style={styles.noBundlesMessage}>
+                    You haven’t created any bundles yet! Build your first one!
+                  </Text>
                 )}
-
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <StarRating
-                    rating={parseInt(ratings[bundle.id]) || 0}
-                    onChange={(val) => setRatings((prev) => ({ ...prev, [bundle.id]: String(val) }))}
-                  />
-                  <Pressable style={styles.submitButton} onPress={() => {
-                    const rating = ratings[bundle.id];
-                    if (rating && /^[1-5]$/.test(rating)) {
-                      submitRating(bundle.id, rating);
-                    } else {
-                      alert('Please enter a number from 1 to 5');
-                    }
-                  }}>
-                    <Text style={styles.submitText}>Submit</Text>
-                  </Pressable>
-                </View>
-
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {bundle.items.map((item: any, i: number) => (
-                    <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
-                      {item.img_route?.trim() ? (
-                        <Image
-                          source={{ uri: Constants.IP_ADDRESS + item.img_route.trim() }}
-                          style={styles.bundleImage}
-                          resizeMode="contain"
-                        />
-                      ) : <View style={[styles.bundleImage, { backgroundColor: '#999' }]} />}
-                      <Text style={styles.itemText}>{item.name}</Text>
-                    </View>
-                  ))}
-                </ScrollView>
-
-{comments[bundle.id]?.length > 0 && (
-  <View style={styles.commentSection}>
-    <Text style={styles.commentHeader}>What people are saying:</Text>
-    {(showAllComments[bundle.id]
-      ? comments[bundle.id]
-      : comments[bundle.id].slice(0, 2)
-    ).map((c, i) => (
-      <View key={i} style={styles.commentBox}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.commentUser}>{c.user}</Text>
-            <Text style={styles.commentText}>{c.text}</Text>
-          </View>
-          {c.user === username && (
-            <Pressable onPress={() => handleDeleteComment(c.id, bundle.id)} style={styles.trashIcon}>
-              <Image source={require('../../assets/images/trash.png')} style={{ width: 18, height: 18 }} />
-            </Pressable>
-          )}
-        </View>
-      </View>
-    ))}
-    {comments[bundle.id].length > 2 && (
-      <Pressable onPress={() => setShowAllComments(prev => ({
-        ...prev,
-        [bundle.id]: !prev[bundle.id]
-      }))}>
-        <Text style={{ color: '#FFD700', fontSize: 14, fontWeight: '600' }}>
-          {showAllComments[bundle.id] ? 'Hide comments' : 'View all comments'}
-        </Text>
-      </Pressable>
-    )}
-  </View>
-)}
-
-
-                <View style={styles.commentInputSection}>
-                  <TextInput
-                    style={styles.commentInput}
-                    placeholder="Add a comment..."
-                    placeholderTextColor="#aaa"
-                    value={ratings[`comment_${bundle.id}`] || ''}
-                    onChangeText={(text) =>
-                      setRatings((prev) => ({ ...prev, [`comment_${bundle.id}`]: text }))
-                    }
-                  />
-                  <Pressable
-                    style={styles.submitButton}
-                    onPress={async () => {
-                      const text = ratings[`comment_${bundle.id}`];
-                      if (!text?.trim()) return alert("Comment cannot be empty.");
-                      try {
-                        const token = await AsyncStorage.getItem("token");
-                        await fetch(Constants.IP_ADDRESS + "api/comments", {
-                          method: "POST",
-                          headers: {
-                            "Authorization": `Bearer ${token}`,
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify({
-                            meal_id: bundle.id,
-                            text: text.trim(),
-                          }),
-                        });
-
-                        fetchComments(bundle.id);
-                        setRatings((prev) => ({ ...prev, [`comment_${bundle.id}`]: '' }));
-                      } catch (err) {
-                        console.error("Error posting comment:", err);
-                      }
-                    }}
-                  >
-                    <Text style={styles.submitText}>Post</Text>
-                  </Pressable>
-                  </View>
-                  </View>
               </View>
-            ))}
+
+              {/* render each bundle */}
+              {bundles.map((bundle, idx) => (
+                <View key={idx} style={styles.bundleWrapper}>
+                  <View style={styles.bundleBox}>
+                    {/* title and delete icon */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingRight: 20 }}>
+                      <View>
+                        <Text style={styles.bundleTitle}>{bundle.title || bundle.name}</Text>
+                        <Text style={styles.posterText}>Posted by: {bundle.poster}</Text>
+                      </View>
+                      {bundle.poster === username && (
+                        <Pressable onPress={() => handleDeleteBundle(bundle.id)}>
+                          <Image source={require('../../assets/images/trash.png')} style={{ width: 20, height: 20 }} />
+                        </Pressable>
+                      )}
+                    </View>
+
+                    {/* average rating */}
+                    {bundle.avg_rating !== undefined && (
+                      <Text style={styles.ratingDisplay}>Average Rating: {bundle.avg_rating}</Text>
+                    )}
+
+                    {/* user rating */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                      <StarRating
+                        rating={parseInt(ratings[bundle.id]) || 0}
+                        onChange={(val) => setRatings((prev) => ({ ...prev, [bundle.id]: String(val) }))}
+                      />
+                      <Pressable style={styles.submitButton} onPress={() => {
+                        const rating = ratings[bundle.id];
+                        if (rating && /^[1-5]$/.test(rating)) {
+                          submitRating(bundle.id, rating);
+                        } else {
+                          alert('Please enter a number from 1 to 5');
+                        }
+                      }}>
+                        <Text style={styles.submitText}>Submit</Text>
+                      </Pressable>
+                    </View>
+
+                    {/* item images */}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      {bundle.items.map((item: any, i: number) => (
+                        <View key={i} style={{ marginRight: 15, alignItems: 'center' }}>
+                          {item.img_route?.trim() ? (
+                            <Image
+                              source={{ uri: Constants.IP_ADDRESS + item.img_route.trim() }}
+                              style={styles.bundleImage}
+                              resizeMode="contain"
+                            />
+                          ) : <View style={[styles.bundleImage, { backgroundColor: '#999' }]} />}
+                          <Text style={styles.itemText}>{item.name}</Text>
+                        </View>
+                      ))}
+                    </ScrollView>
+
+                    {/* comments section */}
+                    {comments[bundle.id]?.length > 0 && (
+                      <View style={styles.commentSection}>
+                        <Text style={styles.commentHeader}>What people are saying:</Text>
+                        {(showAllComments[bundle.id]
+                          ? comments[bundle.id]
+                          : comments[bundle.id].slice(0, 2)
+                        ).map((c, i) => (
+                          <View key={i} style={styles.commentBox}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <View style={{ flex: 1 }}>
+                                <Text style={styles.commentUser}>{c.user}</Text>
+                                <Text style={styles.commentText}>{c.text}</Text>
+                              </View>
+                              {c.user === username && (
+                                <Pressable onPress={() => handleDeleteComment(c.id, bundle.id)} style={styles.trashIcon}>
+                                  <Image source={require('../../assets/images/trash.png')} style={{ width: 18, height: 18 }} />
+                                </Pressable>
+                              )}
+                            </View>
+                          </View>
+                        ))}
+                        {comments[bundle.id].length > 2 && (
+                          <Pressable onPress={() => setShowAllComments(prev => ({
+                            ...prev,
+                            [bundle.id]: !prev[bundle.id]
+                          }))}>
+                            <Text style={{ color: '#FFD700', fontSize: 14, fontWeight: '600' }}>
+                              {showAllComments[bundle.id] ? 'Hide comments' : 'View all comments'}
+                            </Text>
+                          </Pressable>
+                        )}
+                      </View>
+                    )}
+
+                    {/* add a comment */}
+                    <View style={styles.commentInputSection}>
+                      <TextInput
+                        style={styles.commentInput}
+                        placeholder="Add a comment..."
+                        placeholderTextColor="#aaa"
+                        value={ratings[`comment_${bundle.id}`] || ''}
+                        onChangeText={(text) =>
+                          setRatings((prev) => ({ ...prev, [`comment_${bundle.id}`]: text }))
+                        }
+                      />
+                      <Pressable
+                        style={styles.submitButton}
+                        onPress={async () => {
+                          const text = ratings[`comment_${bundle.id}`];
+                          if (!text?.trim()) return alert("Comment cannot be empty.");
+                          try {
+                            const token = await AsyncStorage.getItem("token");
+                            await fetch(Constants.IP_ADDRESS + "api/comments", {
+                              method: "POST",
+                              headers: {
+                                "Authorization": `Bearer ${token}`,
+                                "Content-Type": "application/json",
+                              },
+                              body: JSON.stringify({
+                                meal_id: bundle.id,
+                                text: text.trim(),
+                              }),
+                            });
+
+                            fetchComments(bundle.id);
+                            setRatings((prev) => ({ ...prev, [`comment_${bundle.id}`]: '' }));
+                          } catch (err) {
+                            console.error("Error posting comment:", err);
+                          }
+                        }}
+                      >
+                        <Text style={styles.submitText}>Post</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </View>
+              ))}
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
