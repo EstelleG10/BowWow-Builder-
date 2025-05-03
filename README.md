@@ -15,14 +15,14 @@ The following instructions will be for Mac/Linux machines.
 Our libraries and databases have all been set up on our EC2 instances. As a result, we will be walking through how to set up the EC2 locally. Please contact us if you run into any issues that we have not outlined.
 
 - Download the my_key.pem file on your computer with the path saved. 
-- Copy the following into the terminal: **ssh -i <path to the_key.pem> ec2-user@13.58.115.85**
-(FOR EX: **ssh -i /Users/amy/Desktop/the_key.pem ec2-user@13.58.115.85**)
+- Copy the following into the terminal: 'ssh -i <path to the_key.pem> ec2-user@13.58.115.85'
+(FOR EX: 'ssh -i /Users/amy/Desktop/the_key.pem ec2-user@13.58.115.85')
 
 To run the app:
 
-- Once in the EC2 Instance, run: **cd project-project-group-5/Bowow-Builder/**
-- From here, run **python3 appp.py** in the terminal to connect to the server (at port 9000)
-- Finally, in a second terminal, cd into the Bowow-Builder folder, and type **npx expo start**
+- Once in the EC2 Instance, run: 'cd project-project-group-5/Bowow-Builder/'
+- From here, run 'python3 appp.py' in the terminal to connect to the server (at port 9000)
+- Finally, in a second terminal, cd into the Bowow-Builder folder, and type 'npx expo start'
 - The app can then be displayed in two ways:
         - Download the ExpoGo app on another device and scan the QR code
         - Connect using an Android/IOS emulator.
