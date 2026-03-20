@@ -19,11 +19,7 @@ bcrypt = Bcrypt(app)
 # Database connection
 def get_db_connection():
     return psycopg2.connect(
-        dbname="itemsdb",
-        user="estellegerber",
-        password="megu$taDatab$$3s",
-        host="bowwow-db.cneo2g2w2qei.us-east-2.rds.amazonaws.com",
-        port="5432"
+        
     )
 
 def get_current_user_id():
